@@ -181,19 +181,6 @@ export async function POST(req: NextRequest) {
           })
         }
 
-        await handleOrderStatusChange({
-          orderData: {
-            amount: pembelian?.harga as number,
-            link: invoiceLink,
-            productName: layanan?.layanan as string,
-            status: 'PAID',
-            customerName : pembelian?.nickname ?? 'Guest',
-            method: pembayaran?.metode,
-            orderId: merchantOrderId,
-            whatsapp: pembayaran?.noPembeli.toString()
-          }
-        });
-        
         console.log('Layanan:', layanan);
         console.log('Pembelian:', pembelian);
 
@@ -224,18 +211,7 @@ export async function POST(req: NextRequest) {
                 }
               });
 
-              await handleOrderStatusChange({
-                orderData: {
-                  amount: pembelian?.harga as number,
-                  link: invoiceLink,
-                  productName: layanan?.layanan as string,
-                  status: newStatus,
-                  customerName : pembelian?.nickname ?? 'Guest',
-                  method: pembayaran?.metode,
-                  orderId: merchantOrderId,
-                  whatsapp: pembayaran?.noPembeli.toString()
-                }
-              });
+  
             } else {
               console.log(`Skipping pembelian update because current status (${currentPembelianStatus}) is SUCCESS and new status is ${newStatus}`);
             }

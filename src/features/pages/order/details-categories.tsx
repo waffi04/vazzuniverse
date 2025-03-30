@@ -11,6 +11,7 @@ import { OrderPage } from './order';
 import { useEffect } from 'react';
 import { PaymentsSection } from '../payment/payment';
 import { getServerData } from '@/data/data-server-region';
+import { User } from '@/types/schema/user';
 
 export default function DetailsCategories({ name }: { name: string }) {
   const { data, isLoading } = trpc.main.getCategoriesByName.useQuery({

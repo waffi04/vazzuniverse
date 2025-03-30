@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DownloadIcon, FilterIcon, SearchIcon, XIcon, CalendarIcon } from 'lucide-react';
+import { FilterIcon, SearchIcon, XIcon, CalendarIcon, ArrowDown01Icon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,20 +14,22 @@ import { format } from 'date-fns';
 export function HeaderPesanan({
   onSearchChange,
   onStatusChange,
+  onSetPageSize,
   onDateRangeChange,
 }: {
   onSearchChange: (term: string) => void;
+  onSetPageSize: (page: number) => void;
   onStatusChange: (status: 'PAID' | 'PENDING' | 'FAILED' | "SUCCESS" | undefined) => void;
   onDateRangeChange: (startDate: string | undefined, endDate: string | undefined) => void;
-  // data : TransactionPesan[]  | undefined
 }) {
   const [searchInput, setSearchInput] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | undefined>(undefined);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isDateFilterActive, setIsDateFilterActive] = useState(false);
-
-  // Handle search input change
+  const [selectedPageSize, setSelectedPageSize] = useState<number>(10);
+  const pageSizeOptions = [10, 20, 30, 40, 50, 100];
+  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
   };
@@ -85,7 +87,12 @@ export function HeaderPesanan({
     onDateRangeChange(undefined, undefined);
   };
 
-  // Format date range for display
+  // Handle page size selection
+  const handlePageSizeChange = (size: number) => {
+    setSelectedPageSize(size);
+    onSetPageSize(size);
+  };
+
   const getDateRangeDisplay = () => {
     if (startDate && endDate) {
       return `${format(startDate, 'dd/MM/yy')} - ${format(endDate, 'dd/MM/yy')}`;
@@ -99,7 +106,6 @@ export function HeaderPesanan({
     return 'Date Range';
   };
 
-  // Format date for input value
   const formatDateForInput = (date: Date | undefined) => {
     return date ? format(date, 'yyyy-MM-dd') : '';
   };
@@ -195,6 +201,30 @@ export function HeaderPesanan({
             </PopoverContent>
           </Popover>
         </div>
+
+        {/* Page Size Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant={selectedPageSize ? 'default' : 'outline'}
+              className="flex items-center gap-2"
+            >
+              <span>{selectedPageSize}</span>
+              <ArrowDown01Icon className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {pageSizeOptions.map((size) => (
+              <DropdownMenuItem 
+                key={size} 
+                onClick={() => handlePageSizeChange(size)}
+              >
+                {size}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Filter dropdown */}
         <DropdownMenu>

@@ -14,7 +14,6 @@ export default function DashboardAdminPage() {
   const { data } = trpc.transaction.useQuery()
   const [selectedTab, setSelectedTab] = useState("overview")
   
-  // If data is undefined, display loading state
   if (!data) {
     return (
       <main className="flex flex-col gap-6 p-6 bg-background">
@@ -61,7 +60,7 @@ export default function DashboardAdminPage() {
                 <div className="text-2xl font-bold">Rp {(data.revenue.thisMonth).toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
                   {data.revenue.thisMonth > data.revenue.lastMonth ? '+' : '-'}
-                  {Math.abs(data.revenue.thisMonth - data.revenue.lastMonth).toLocaleString()} from last month
+                  {Math.abs(data.revenue.thisMonth - data.revenue.lastMonth).toLocaleString("id-ID")} from last month
                 </p>
               </CardContent>
             </Card>

@@ -33,15 +33,7 @@ export function PaymentMethods({
     "KOIN": ["balance"]
   };
   
-  // Mendapatkan kategori berdasarkan kode metode pembayaran
-  const getMethodCategory = (type: string): string => {
-    for (const [category, types] of Object.entries(paymentCategories)) {
-      if (types.includes(type)) {
-        return category;
-      }
-    }
-    return "LAINNYA";
-  };
+
   
   // Icon untuk setiap kategori
   const categoryIcons: Record<string, React.ReactNode> = {

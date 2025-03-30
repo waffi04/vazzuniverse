@@ -225,7 +225,6 @@ export function BannerSlider() {
     }),
   }
 
-  // Digit flip animation component
   const DigitCard = ({ digit, label }: { digit: string; label?: string }) => {
     const digits = digit.split("")
 
@@ -248,7 +247,6 @@ export function BannerSlider() {
             </AnimatePresence>
           ))}
         </div>
-        {label && <span className="text-[8px] text-yellow-300/80 mt-0.5">{label}</span>}
       </div>
     )
   }

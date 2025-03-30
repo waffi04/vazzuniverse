@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { X } from "lucide-react";
 import { TRPCError } from "@trpc/server";
+import { startOfDay } from "date-fns";
 
 export const adminStats = publicProcedure.query(async ({ ctx }) => {
   try {
@@ -339,106 +340,117 @@ export const PembelianAll = router({
       }),
       getAllPembelianData: publicProcedure
       .query(async ({ ctx }) => {
-        const now = new Date();
+        const now = new Date(); // Current date and time
+    
+        // Today: Last 24 hours
+        const last24Hours = new Date(now);
+        last24Hours.setHours(now.getHours() - 24);
+    
+        const lastWeek = new Date(now);
+        lastWeek.setDate(now.getDate() - 7);
+    
+        const lastMonth = new Date(now);
+        lastMonth.setDate(now.getDate() - 30);
         
-        // Start of today
-        const startOfDay = new Date(now);
-        startOfDay.setHours(0, 0, 0, 0);
+        const aggregateAndSort = (transactions: any[]) => {
+          const userTotals = new Map();
+          
+          transactions.forEach(tx => {
+            console.log(tx)
+            const userKey = tx.username || tx.nickname || tx.nickname === "not-found" 
+            
+            if (!userKey) return;
+            
+            if (userTotals.has(userKey)) {
+              const existingData = userTotals.get(userKey);
+              userTotals.set(userKey, {
+                username: tx.username || existingData.username,
+                nickname: tx.nickname || existingData.nickname,
+                harga: existingData.harga + tx.harga
+              });
+            } else {
+              userTotals.set(userKey, {
+                username: tx.username,
+                nickname: tx.nickname,
+                harga: tx.harga
+              });
+            }
+          });
+          
+          // Convert map to array and sort by highest total price
+          return Array.from(userTotals.values())
+            .sort((a, b) => b.harga - a.harga)
+            .slice(0, 10); // Take top 10
+        };
         
-        // Start of week (Sunday)
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-        
-        // Start of month
-        const startOfMonth = new Date(now);
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
+        // Common filter for successful transactions
+        const commonFilter = {
+          NOT: {
+            AND: [
+              { username: null },
+              { nickname: null }
+            ]
+          },
+          status: {
+            in: ["SUCCESS", "Success"]
+          }
+        };
         
         // Execute all queries in parallel for better performance
-        const [ expensiveToday, expensiveWeek, expensiveMonth] = await Promise.all([
-          // Recent transactions (by date)
-          ctx.prisma.pembayaran.findMany({
-            take: 10,
-            select: {
-              orderId: true,
-              harga: true
-
-            },
-            orderBy: {
-              createdAt: 'desc'
-            }
-          }),
-          
-          // Most expensive (all time)
-          ctx.prisma.pembayaran.findMany({
-            take: 10,
-            select: {
-              orderId: true,
-              harga: true
-            },
-            orderBy: {
-              harga: 'desc'
-            }
-          }),
-          
-          // Most expensive today
-          ctx.prisma.pembayaran.findMany({
+        const [todayTransactions, weekTransactions, monthTransactions] = await Promise.all([
+          // Today's transactions (last 24 hours)
+          ctx.prisma.pembelian.findMany({
             where: {
               createdAt: {
-                gte: startOfDay
-              }
+                gte: last24Hours,
+                lte: now
+              },
+              ...commonFilter
             },
-            take: 10,
             select: {
-              orderId: true,
-                    harga: true
-            },
-            orderBy: {
-              harga: 'desc'
+              nickname: true,
+              username: true,
+              harga: true,
             }
           }),
           
-          // Most expensive this week
-          ctx.prisma.pembayaran.findMany({
+          // This week's transactions (last 7 days)
+          ctx.prisma.pembelian.findMany({
             where: {
               createdAt: {
-                gte: startOfWeek
-              }
+                gte: lastWeek,
+                lte: now
+              },
+              ...commonFilter
             },
-            take: 10,
             select: {
-              orderId: true,
-              noPembeli: true,
-              status: true,
-              updatedAt: true,
-              harga: true
-            },
-            orderBy: {
-              harga: 'desc'
+              nickname: true,
+              username: true,
+              harga: true,
             }
           }),
           
-          // Most expensive this month
-          ctx.prisma.pembayaran.findMany({
+          // This month's transactions (last 30 days)
+          ctx.prisma.pembelian.findMany({
             where: {
               createdAt: {
-                gte: startOfMonth
-              }
+                gte: lastMonth,
+                lte: now
+              },
+              ...commonFilter
             },
-            take: 10,
             select: {
-              orderId: true,
-              noPembeli: true,
-              status: true,
-              updatedAt: true,
-              harga: true
-            },
-            orderBy: {
-              harga: 'desc'
+              nickname: true,
+              username: true,
+              harga: true,
             }
-          }),
+          })
         ]);
+        
+        // Aggregate and sort each time period's data
+        const expensiveToday = aggregateAndSort(todayTransactions);
+        const expensiveWeek = aggregateAndSort(weekTransactions);
+        const expensiveMonth = aggregateAndSort(monthTransactions);
         
         // Return all data in a structured object
         return {

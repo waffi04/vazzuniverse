@@ -8,7 +8,8 @@ export  const metadata : Metadata = {
 }
 
 
-export default  function Page() :JSX.Element {
+export default async  function Page() : Promise<JSX.Element> {
+
   return (
     <>
       <OrderMainPage />

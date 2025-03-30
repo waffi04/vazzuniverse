@@ -162,6 +162,7 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
                   <DetailItem  label="Status"  value={<Badge status={data.pembayaran.status}/>}/>
                   <DetailItem label="Waktu" value={formatDate(data.pembayaran.createdAt as string)} />
                   <DetailItem label="No. Pembeli" value={`${data.pembayaran.noPembeli}`} valueClassName="" />
+                  <DetailItem label="Sn" value={`${data.sn}`} valueClassName="" />
                 </div>
               </motion.div>
             </CardContent>

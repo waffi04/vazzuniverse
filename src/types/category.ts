@@ -29,6 +29,7 @@ export type SubCategories = {
 
 export type PlansProps = {
   id: number;
+  hargaPlatinum : number
   subCategoryId: number;
   providerId: string;
   layanan: string;

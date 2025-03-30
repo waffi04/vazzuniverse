@@ -224,6 +224,7 @@ export const Layanans = router({
           select: {
             layanan: true,
             providerId: true,
+            hargaPlatinum : true,
             subCategoryId: true,
             harga: true,
             hargaFlashSale : true,

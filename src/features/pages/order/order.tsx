@@ -4,6 +4,7 @@ import { PlansOrder } from './plans';
 import { usePlansStore } from '@/hooks/use-select-plan';
 import { PlansProps, SubCategories } from '@/types/category';
 import { matchProductToCategory } from './components/match-product-to-cat';
+import { User } from '@/types/schema/user';
 
 interface OrderPageProps {
   plans: PlansProps[]  |  undefined

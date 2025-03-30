@@ -4,6 +4,7 @@ import DetailsCategories from './details-categories';
 import { useEffect } from 'react';
 import { usePlansStore } from '@/hooks/use-select-plan';
 
+
 export function OrderMainPage() {
   const { name } = useParams();
 

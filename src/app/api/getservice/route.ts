@@ -235,18 +235,21 @@ export async function GET() {
                 );
 
                 // For platinum, apply the profit margin and then subtract 1%
+                // const platinumBasePrice = Math.round(
+                //   item.price +
+                //     (item.price * existingService.profitPlatinum) / 100
+                // );
+                // const platinumPrice = Math.round(platinumBasePrice * 0.99); 
                 const platinumBasePrice = Math.round(
-                  item.price +
-                    (item.price * existingService.profitPlatinum) / 100
+                  item.price + (item.price * defaultProfits.profitPlatinum) / 100
                 );
-                const platinumPrice = Math.round(platinumBasePrice * 0.99); // Apply 1% discount
-
+                
                 await prisma.layanan.update({
                   where: { id: existingService.id },
                   data: {
                     harga: regularPrice,
                     hargaReseller: resellerPrice,
-                    hargaPlatinum: platinumPrice, 
+                    hargaPlatinum: platinumBasePrice, 
                     hargaGold: goldPrice,
                     status: item.seller_product_status,
                   },

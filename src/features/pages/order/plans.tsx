@@ -3,6 +3,27 @@
 import type { JSX } from "react"
 import { FormatPrice } from "@/utils/formatPrice"
 import type { PlansProps } from "@/types/category"
+import { trpc } from "@/utils/trpc"
+
+interface CalculatePriceProps {
+  priceFlashSale: number
+  price: number
+  pricePlatinum: number
+  isUserPlatinum: boolean
+}
+
+function CalculatePrice({
+  price,
+  priceFlashSale,
+  pricePlatinum,
+  isUserPlatinum
+}: CalculatePriceProps): number {
+  if (isUserPlatinum) {
+    return Math.min(priceFlashSale, pricePlatinum)
+  } else {
+    return priceFlashSale < price ? priceFlashSale : price
+  }
+}
 
 export function PlansOrder({
   plan,
@@ -13,14 +34,22 @@ export function PlansOrder({
   onSelect: (select: PlansProps) => void
   isSelected?: boolean
 }): JSX.Element {
-  const price = plan.isFlashSale ? plan.hargaFlashSale : plan.harga
+  const { data: userData, isLoading } = trpc.member.findMe.useQuery();
+  const isUserPlatinum = userData?.role === "Platinum" as string
+  
+  const price = CalculatePrice({
+    price: plan.harga,
+    priceFlashSale: plan.hargaFlashSale || plan.harga, 
+    pricePlatinum: plan.hargaPlatinum || plan.harga,  
+    isUserPlatinum: isUserPlatinum || false 
+  });
 
   return (
     <section
       onClick={() =>
         onSelect({
           ...plan,
-          harga: price as number,
+          harga: price, 
         })
       }
       className={`cursor-pointer rounded-xl border transition-all duration-300 relative overflow-hidden ${
@@ -30,14 +59,21 @@ export function PlansOrder({
       }`}
     >
       {/* Flash Sale Badge */}
-      {plan.isFlashSale && (
+      {(plan.isFlashSale && !isUserPlatinum) && (
         <div className="absolute -top-1 -right-8 transform rotate-45 bg-red-500 text-white text-xs py-1 px-8 font-bold">
           SALE
         </div>
       )}
-      
+
+      {/* Fixed: Proper condition checking for Platinum badge */}
+      {(isUserPlatinum && plan.hargaPlatinum && plan.hargaPlatinum < (plan.hargaFlashSale || plan.harga)) && (
+        <div className="absolute -top-1 -right-8 transform rotate-45 bg-purple-500 text-white text-xs py-1 px-8 font-bold">
+          PLATINUM
+        </div>
+      )}
+
       <div className="p-4 space-y-3">
-        {/* Service Name with Optional Icon */}
+        {/* Service Name */}
         <div className="flex items-center gap-2">
           <svg
             className={`w-4 h-4 ${isSelected ? "text-blue-200" : "text-blue-400"}`}
@@ -47,7 +83,9 @@ export function PlansOrder({
           >
             <path d="M12 1L1 5l11 4 11-4-11-4zM1 12l3-1v6l8 3 8-3v-6l3 1V5L12 9 1 5v7z" />
           </svg>
-          <h3 className={`font-medium text-sm ${isSelected ? "text-white" : "text-gray-200"}`}>{plan.layanan}</h3>
+          <h3 className={`font-medium text-sm ${isSelected ? "text-white" : "text-gray-200"}`}>
+            {plan.layanan}
+          </h3>
         </div>
 
         {/* Price Section */}
@@ -55,17 +93,23 @@ export function PlansOrder({
           <div>
             <p className="text-xs text-gray-400">Harga</p>
             <div className="flex items-center gap-2">
-              {plan.isFlashSale && (
-                <span className="text-xs text-gray-400 line-through">{FormatPrice(plan.harga)}</span>
+              {/* Fixed: Proper condition for displaying strikethrough price */}
+              {((plan.isFlashSale && (plan?.hargaFlashSale ?? 0) < plan.harga) || 
+                (isUserPlatinum && plan.hargaPlatinum && plan.hargaPlatinum < plan.harga)) && (
+                <span className="text-xs text-gray-400 line-through">
+                  {FormatPrice(plan.harga)}
+                </span>
               )}
               <p
                 className={`font-semibold text-lg ${
-                  isSelected ? "text-white" : plan.isFlashSale ? "text-red-300" : "text-gray-200"
+                  isSelected 
+                    ? "text-white" 
+                    : (plan.isFlashSale && (plan?.hargaFlashSale ?? 0) < plan.harga) || isUserPlatinum 
+                      ? "text-purple-300" 
+                      : "text-gray-200"
                 }`}
               >
-                {FormatPrice(price as number
-
-                )}
+                {FormatPrice(price)}
               </p>
             </div>
           </div>
@@ -80,7 +124,7 @@ export function PlansOrder({
               e.stopPropagation()
               onSelect({
                 ...plan,
-                harga: price as number,
+                harga: price,
               })
             }}
           >
@@ -91,4 +135,3 @@ export function PlansOrder({
     </section>
   )
 }
-

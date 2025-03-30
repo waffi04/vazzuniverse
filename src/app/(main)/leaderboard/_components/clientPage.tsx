@@ -2,12 +2,7 @@
 import { trpc } from '@/utils/trpc';
 import { FormatPrice } from '@/utils/formatPrice';
 
-// Helper function untuk masking sensitive data
-function maskOrderId(orderId: string) {
-  if (!orderId) return '-';
-  const firstThree = orderId.substring(0, 3);
-  return `${firstThree}***`;
-}
+
 
 export function LeaderboardPage() {
   // Fetch semua data transaksi sekaligus
@@ -26,6 +21,7 @@ export function LeaderboardPage() {
   const todayTransactions = allData?.expensive?.today || [];
   const weekTransactions = allData?.expensive?.week || [];
   const monthTransactions = allData?.expensive?.month || [];
+
 
   return (
     <main className="container mx-auto p-4 max-w-7xl">
@@ -66,7 +62,11 @@ function LeaderboardCard({
   emptyMessage,
 }: {
   title: string
-  transactions: any[]
+  transactions: {
+    nickname : string,
+    username : string,
+    harga : number
+  }[],
   emptyMessage: string
 }) {
   return (
@@ -78,13 +78,13 @@ function LeaderboardCard({
         {transactions.length > 0 ? (
           <div className="space-y-4">
             {transactions.map((transaction, index) => (
-              <div key={transaction.orderId} className="flex justify-between items-center">
+              <div key={index} className="flex justify-between items-center">
                 <div className="flex items-center space-x-3">
                   <span className="text-sm font-bold text-cyan-400">#{index + 1}</span>
-                  <span className="text-gray-300 text-sm">{maskOrderId(transaction.orderId)}</span>
+                  <span className="text-gray-300 text-sm">{transaction.nickname || transaction.username}</span>
                 </div>
                 <div className="text-sm font-semibold text-green-400">
-                  {FormatPrice(Number.parseInt(transaction.harga))}
+                  {FormatPrice(transaction.harga)}
                 </div>
               </div>
             ))}

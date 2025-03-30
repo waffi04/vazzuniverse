@@ -23,7 +23,7 @@ export function DashboardPesanan() {
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
 
   // Debounce search input by 1 second
   useEffect(() => {
@@ -35,14 +35,20 @@ export function DashboardPesanan() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, startDate, endDate]);
+  }, [statusFilter, startDate, endDate, pageSize]);
 
   // Handle date range changes
   const handleDateRangeChange = (start: string | undefined, end: string | undefined) => {
     setStartDate(start);
     setEndDate(end);
+  };
+
+  // Handle page size changes
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
   };
 
   const { data: transactionsData, isLoading, isError } =
@@ -150,6 +156,7 @@ export function DashboardPesanan() {
       <HeaderPesanan
         onSearchChange={setSearchTerm}
         onStatusChange={setStatusFilter}
+        onSetPageSize={handlePageSizeChange}
         onDateRangeChange={handleDateRangeChange}
       />
 
