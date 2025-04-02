@@ -5,6 +5,7 @@ export type WaMessage = {
   status: string;
   customerName?: string;
   orderId?: string;
+  sn? : string
   whatsapp?: string;
   method?: string;
 };

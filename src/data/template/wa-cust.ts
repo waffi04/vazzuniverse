@@ -4,15 +4,14 @@ export const templatesWaCustMessage = ({
   status, 
   productName, 
   amount, 
-  link 
+  link ,
+  sn,
 }: WaMessage): string => {
   // Define separator as a constant for consistency
-  const separator = "──────────────────";
+  const separator = "─────────────";
   
-  // Format amount with thousands separator if provided
   const formattedAmount = amount ? new Intl.NumberFormat('id-ID').format(amount) : '{{amount}}';
   
-  // Use actual values if available, otherwise use placeholder
   const productNameDisplay = productName || '{{productName}}';
   const linkDisplay = link || '{{link}}';
   
@@ -67,23 +66,31 @@ Pembayaran Anda untuk *${productNameDisplay}* telah diterima dan pesanan Anda se
 📝 Kami akan mengupdate Anda ketika pesanan Anda siap.
     
 💬 Butuh bantuan? Balas pesan ini untuk mendapatkan bantuan.`;
+
+
+
   } else if (status === 'SUCCESS') {
     message = `✅ *PESANAN BERHASIL*
     
-${separator}
+   ${separator}
     
-📦 *Produk*: ${productNameDisplay}
-💰 *Jumlah*: Rp${formattedAmount}
+  *Produk*: ${productNameDisplay}
+  *Jumlah*: Rp${formattedAmount}
+  *Sn*: Rp${formattedAmount}
     
-${separator}
-    
-🎉 Kabar baik! Pesanan Anda untuk *${productNameDisplay}* telah berhasil selesai diproses.
-    
-Detail pesanan dan tanda terima tersedia di sini:
+  ${separator}
+        
 🔗 *Lihat Pesanan*: ${linkDisplay}
     
-🙏 Terima kasih atas kepercayaan Anda! Jika Anda memiliki pertanyaan atau membutuhkan bantuan lainnya, jangan ragu untuk menghubungi kami.`;
-  } else if (status === 'FAILED') {
+🙏 Terima kasih atas kepercayaan Anda!.
+    
+Screenshot & tag @vazzuniverse.id di story IG kamu! 📲✨
+
+Dan bersiap di-repost oleh admin kami ! 🚀
+`;
+
+
+} else if (status === 'FAILED') {
     message = `❌ *PEMBAYARAN GAGAL*
     
 ${separator}

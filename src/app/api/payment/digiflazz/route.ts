@@ -274,7 +274,8 @@ export async function POST(req: NextRequest) {
           status : purchaseStatus,
           customerName : pembelian.username as string,
           orderId : pembelian.orderId,
-          whatsapp : pembayaran?.noPembeli
+          whatsapp : pembayaran?.noPembeli,
+          sn,
         }
       });
 

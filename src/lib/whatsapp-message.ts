@@ -103,8 +103,6 @@ export async function handleOrderStatusChange({
     // Send notification to customer
     await sendCustomerNotification({ orderData });
 
-    // Send notification to admin
-    await sendAdminNotification({ orderData });
 
     return true;
   } catch (error) {

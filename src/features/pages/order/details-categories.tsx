@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { PaymentsSection } from '../payment/payment';
 import { getServerData } from '@/data/data-server-region';
 import { User } from '@/types/schema/user';
+import Link from 'next/link';
 
 export default function DetailsCategories({ name }: { name: string }) {
   const { data, isLoading } = trpc.main.getCategoriesByName.useQuery({
@@ -75,7 +76,13 @@ export default function DetailsCategories({ name }: { name: string }) {
                 <h2 className="text-xl font-semibold text-white">
                   Account Details
                 </h2>
-                <HelpCircle size={20} className="text-blue-400" />
+                <Link 
+                  href="/cara-top-up" 
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-500/30 transition-all duration-300 text-blue-300 hover:text-blue-200 border border-blue-500/30"
+                >
+                  <span className="text-sm font-medium">Cara Top-up</span>
+                  <HelpCircle size={16} className="text-blue-400" />
+                </Link>
               </div>
 
               <PlaceholderContent

@@ -13,7 +13,7 @@ export  async function  POST(){
                     customerName : "WAFIUDDIN",
                     method: 'UNIT TEST',
                     orderId: "BHWUWEGWEYUWYW2q712",
-                    whatsapp:  `6282226197047`
+                    whatsapp:  `6282131648832`
                   }
                 });
                 return NextResponse.json({status : 'success'})

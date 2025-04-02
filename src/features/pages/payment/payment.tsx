@@ -83,7 +83,7 @@ export function PaymentsSection({
           id="whatsapp"
           value={noWa || ''}
           onChange={(e) => setNowa(e.target.value)}
-          placeholder="Enter your no whatsapp"
+          placeholder="8123456789"
           className="w-full px-4 py-3 rounded-md bg-blue-950 border border-blue-800 text-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all"
           required
         />

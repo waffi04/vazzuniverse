@@ -340,7 +340,7 @@ export const PembelianAll = router({
       }),
       getAllPembelianData: publicProcedure
       .query(async ({ ctx }) => {
-        const now = new Date(); // Current date and time
+        const now = new Date(); 
     
         // Today: Last 24 hours
         const last24Hours = new Date(now);
@@ -357,7 +357,7 @@ export const PembelianAll = router({
           
           transactions.forEach(tx => {
             console.log(tx)
-            const userKey = tx.username || tx.nickname || tx.nickname === "not-found" 
+            const userKey = tx.username
             
             if (!userKey) return;
             
@@ -365,19 +365,16 @@ export const PembelianAll = router({
               const existingData = userTotals.get(userKey);
               userTotals.set(userKey, {
                 username: tx.username || existingData.username,
-                nickname: tx.nickname || existingData.nickname,
                 harga: existingData.harga + tx.harga
               });
             } else {
               userTotals.set(userKey, {
                 username: tx.username,
-                nickname: tx.nickname,
                 harga: tx.harga
               });
             }
           });
           
-          // Convert map to array and sort by highest total price
           return Array.from(userTotals.values())
             .sort((a, b) => b.harga - a.harga)
             .slice(0, 10); // Take top 10
@@ -387,8 +384,8 @@ export const PembelianAll = router({
         const commonFilter = {
           NOT: {
             AND: [
-              { username: null },
-              { nickname: null }
+              { username: "Guest" },
+              { nickname: "not-found" }
             ]
           },
           status: {

@@ -280,6 +280,8 @@ model SubCategory {
   createdAt    DateTime? @map("created_at")
   updatedAt    DateTime? @map("updated_at")
 
+
+  @@index([categoryId,active])
   @@map("sub_categories")
 }
 
@@ -296,7 +298,6 @@ model Users {
   createdAt      DateTime? @map("created_at")   @default(now())
   updatedAt      DateTime? @map("updated_at")
   lastPaymentAt  DateTime? @map("last_payment_at")
-
   
   @@map("users")
 }

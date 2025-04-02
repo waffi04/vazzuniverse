@@ -1,7 +1,7 @@
 import z from 'zod';
 export const passwordSchema = z
   .string()
-  .min(8, { message: 'Password must be at least 8 characters long.' });
+  .min(5, { message: 'Password must be at least 5 characters long.' });
 
 export const loginSchema = z.object({
   username: z.string(),

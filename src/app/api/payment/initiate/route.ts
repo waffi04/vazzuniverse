@@ -372,7 +372,7 @@ export async function POST(req: NextRequest) {
             profit: productDetails.profit,
             status: 'PENDING',
             tipeTransaksi: 'Top Up',
-            username: session?.session?.username || 'Guest',
+            username: session?.session?.username,
             userId: accountId,
             zone: serverId,
             providerOrderId: layanans?.providerId,
