@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { RegisterAuth, UpdateUser } from '@/types/schema/auth';
 import { User } from '@/types/schema/user';
 import { hashSync } from 'bcryptjs';
-import { randomInt } from 'crypto';
+import { randomBytes, randomInt } from 'crypto';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 
@@ -13,7 +13,9 @@ export type CreateUserResult = {
   message: string;
   user?: Partial<User>;
 };
-
+function generateApiKey() {
+  return randomBytes(32).toString('base64').replace(/[^a-zA-Z0-9]/g, '');
+}
 export default async function CreateUser({
   credentials,
 }: {
@@ -45,8 +47,8 @@ export default async function CreateUser({
         password: hashedPassword,
         role: 'Member',
             balance: 0,
-        apiKey : randomInt(10).toString(),
-      },
+            apiKey: generateApiKey(),
+          },
       select: {
         id: true,
         username: true,
@@ -91,7 +93,9 @@ export async function findUserByUsername(username: string) {
       id: true,
       createdAt: true,
       role: true,
+      otp : true,
       apiKey: true,
+      token : true,
       updatedAt: true,
       whatsapp: true,
     },
@@ -109,8 +113,9 @@ export async function findUserById(id: number
       id: true,
       createdAt: true,
       role: true,
+      otp : true,
+      token : true,
       apiKey: true,
-      otp: true,
       updatedAt: true,
       whatsapp: true,
     },

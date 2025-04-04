@@ -3,17 +3,9 @@ import { useState, useEffect } from 'react';
 import { HeaderPesanan } from './header-pesanan';
 import { trpc } from '@/utils/trpc';
 import { RecentTransactions } from '../recent-transactions';
+import { PaginationSection } from './pagination-section';
 
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
-
+// Main Dashboard Component
 export function DashboardPesanan() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<
@@ -23,7 +15,8 @@ export function DashboardPesanan() {
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize,setPageSize] = useState<number>(10);
+  const [isAll,setIsAll]  = useState<boolean>(false)
 
   // Debounce search input by 1 second
   useEffect(() => {
@@ -35,10 +28,9 @@ export function DashboardPesanan() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, startDate, endDate, pageSize]);
+  }, [statusFilter, startDate, endDate]);
 
   // Handle date range changes
   const handleDateRangeChange = (start: string | undefined, end: string | undefined) => {
@@ -46,12 +38,7 @@ export function DashboardPesanan() {
     setEndDate(end);
   };
 
-  // Handle page size changes
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-  };
-
-  const { data: transactionsData, isLoading, isError } =
+  const { data: transactionsData, isLoading } =
     trpc.pembelian.getAll.useQuery({
       status: statusFilter,
       page: currentPage,
@@ -59,104 +46,26 @@ export function DashboardPesanan() {
       searchTerm: debouncedSearchTerm,
       startDate: startDate,
       endDate: endDate,
+      all : isAll
     });
-
-  // Handle error state
-  if (isError) {
-    return (
-      <div className="py-8 text-center text-red-500">
-        Failed to load transactions. Please try again later.
-      </div>
-    );
-  }
 
   // Calculate total pages
   const totalItems = transactionsData?.totalCount || 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-  // Handle page changes
+  // Handle page change
   const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  // Generate pagination items
-  const generatePaginationItems = () => {
-    const items = [];
-
-    // Always show first page
-    items.push(
-      <PaginationItem key="first">
-        <PaginationLink
-          onClick={() => handlePageChange(1)}
-          isActive={currentPage === 1}
-        >
-          1
-        </PaginationLink>
-      </PaginationItem>
-    );
-
-    // Add ellipsis if needed
-    if (currentPage > 3) {
-      items.push(
-        <PaginationItem key="ellipsis-start">
-          <PaginationEllipsis />
-        </PaginationItem>
-      );
-    }
-
-    // Add pages around current page
-    const startPage = Math.max(2, currentPage - 1);
-    const endPage = Math.min(totalPages - 1, currentPage + 1);
-
-    for (let i = startPage; i <= endPage; i++) {
-      if (i > 1 && i < totalPages) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              onClick={() => handlePageChange(i)}
-              isActive={currentPage === i}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    }
-
-    // Add ellipsis if needed
-    if (currentPage < totalPages - 2) {
-      items.push(
-        <PaginationItem key="ellipsis-end">
-          <PaginationEllipsis />
-        </PaginationItem>
-      );
-    }
-
-    // Always show last page if there is more than one page
-    if (totalPages > 1) {
-      items.push(
-        <PaginationItem key="last">
-          <PaginationLink
-            onClick={() => handlePageChange(totalPages)}
-            isActive={currentPage === totalPages}
-          >
-            {totalPages}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-
-    return items;
-  };
-
+  
   return (
     <main className="container w-full mx-auto p-4">
       <HeaderPesanan
+        data={transactionsData?.transactions ?? []}
         onSearchChange={setSearchTerm}
         onStatusChange={setStatusFilter}
-        onSetPageSize={handlePageSizeChange}
+        onSetPageSize={setPageSize}
+        onSetAll={setIsAll}
         onDateRangeChange={handleDateRangeChange}
       />
 
@@ -186,35 +95,11 @@ export function DashboardPesanan() {
             </div>
 
             {/* Pagination controls */}
-            <div className="mt-8 flex items-center justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      className={
-                        currentPage === 1
-                          ? 'pointer-events-none opacity-50'
-                          : 'cursor-pointer'
-                      }
-                    />
-                  </PaginationItem>
-
-                  {generatePaginationItems()}
-
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      className={
-                        currentPage === totalPages
-                          ? 'pointer-events-none opacity-50'
-                          : 'cursor-pointer'
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
+            <PaginationSection 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
 
             <div className="text-center text-sm text-gray-500 mt-2">
               Showing {(currentPage - 1) * pageSize + 1} to{' '}

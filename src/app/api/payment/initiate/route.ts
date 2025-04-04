@@ -223,8 +223,6 @@ export async function POST(req: NextRequest) {
     }
 
 
-    console.log(body)
-
     // Validate environment variables
     if (!DUITKU_MERCHANT_CODE || !DUITKU_API_KEY) {
       console.error('Missing Duitku configuration');  
@@ -363,13 +361,20 @@ export async function POST(req: NextRequest) {
           where: { layanan },
         });
 
+        let Profit : number 
+        if(session?.session && session.session.role === "Platinum"){
+          Profit =  productDetails.profitPlatinum
+        } else {
+          Profit =  productDetails.profit
+        }
+        
         // Create purchase record
         await tx.pembelian.create({
           data: {
             harga: paymentAmount,
             layanan,
             orderId: merchantOrderId,
-            profit: productDetails.profit,
+            profit: Profit,
             status: 'PENDING',
             tipeTransaksi: 'Top Up',
             username: session?.session?.username,

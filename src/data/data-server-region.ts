@@ -165,7 +165,7 @@ export const dataTarisland = [
   { name: 'Asia', value: 'asia' },
 ];
 
-export const dataDefaultEmpty = [{ name: 'Default', value: 'default' }];
+export const dataDefaultEmpty = [];
 
 // Enhanced getServerData function
 export const getServerData = (code: string) => {
@@ -251,8 +251,6 @@ export const getServerData = (code: string) => {
     case 'three':
     case 'xl':
     case 'by.U':
-    case 'voucher-garena':
-    case 'voucher-unipin':
     case 'google-play':
     case 'steam-wallet':
     case 'pln':

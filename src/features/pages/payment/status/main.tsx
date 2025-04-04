@@ -25,7 +25,6 @@ export function PaymentStatus() {
   if (!merchantOrderId) {
     return <div>No invoice provided</div>
   }
-
   if(isLoading){
     return <LoadingOverlay />
   }

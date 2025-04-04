@@ -22,16 +22,18 @@ interface PaymentDetails {
   reference: string | null; 
 } 
 
-interface Transaction {
+export interface Transaction {
   id: number;
   orderId: string;
   username: string | null;
   layanan: string;
+  profit : number
   harga: number;
   status: string;
   createdAt?: string | null;
   pembayaran: PaymentDetails | null
   log?: string | null;
+  nickname : string | null
   updatedAt?: string | null;
   zone : string | null
   userId  : string | null

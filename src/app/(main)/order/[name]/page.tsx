@@ -7,9 +7,7 @@ export  const metadata : Metadata = {
   description  : 'Order Vazzuniverse adalah sebuah penyedia layanan top up games dengan harga termurah dan proses super instan. Dapatkan lebih banyak promo dan potongan harga dengan cara bergabung menjadi Reseller.'
 }
 
-
 export default async  function Page() : Promise<JSX.Element> {
-
   return (
     <>
       <OrderMainPage />

@@ -46,6 +46,35 @@ export const member = router({
       throw new Error(`Failed to fetch members: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }),
+   findMembership: publicProcedure.query(async ({ ctx }) => {
+      try {
+        const session = await getProfile();
+        if (!session) {
+          return {
+            status: false,
+            message: "Message retrieved successfully"
+          };
+        }
+        const membershipme = await ctx.prisma.deposits.findMany({
+          where: {
+            username: session.session.username,
+            depositId: {
+              startsWith: "MEM" 
+            }
+          }
+        });
+        
+        return {
+          status: true,
+          data: membershipme
+        };
+      } catch (error) {
+        return {
+          status: false,
+          message: "Error retrieving membership data",
+        };
+      }
+    }),
   findMe : publicProcedure.query(async({ctx}) => {
     try {
      const session = await getProfile()

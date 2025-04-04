@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Destructure callback data
     const {
       ref_id,
       buyer_sku_code,
@@ -51,8 +50,6 @@ export async function POST(req: NextRequest) {
     } = callbackData.data;
 
     referenceId = ref_id;
-    console.log('Processing Reference ID:', referenceId);
-    console.log('Processing data :', callbackData.data);
 
     if (!referenceId || !buyer_sku_code || !customer_no) {
       const validationErrorLog = await prisma.systemLog.create({
@@ -111,7 +108,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Enhanced pembelian lookup logging
-      const pembelianLookupLog = await tx.systemLog.create({
+      await tx.systemLog.create({
         data: {
           type: 'DIGIFLAZZ',
           parentLogId: logId,
@@ -146,7 +143,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Log pembayaran details
-      const pembayaranLookupLog = await tx.systemLog.create({
+      await tx.systemLog.create({
         data: {
           type: 'DIGIFLAZZ',
           parentLogId: logId,
@@ -163,49 +160,56 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      if (pembayaran?.metode === "SALDO") {
-        const saldoPaymentLog = await tx.systemLog.create({
+      // Prepare log message based on transaction status
+      let logMessage = message || "";
+      let refundProcessed = false;
+
+      // For successful transactions, especially vouchers, include SN in the log
+      if (purchaseStatus === 'SUCCESS' && sn) {
+        logMessage = `Transaksi berhasil. SN/Kode Voucher: ${sn}`;
+        
+        // Log SN details
+        await tx.systemLog.create({
           data: {
             type: 'DIGIFLAZZ',
             parentLogId: logId,
-            action: 'SALDO_PAYMENT_HANDLING',
-            status: 'PROCESSING',
-            details: `Purchase Status: ${purchaseStatus}`,
+            action: 'SN_RECEIVED',
+            status: 'SUCCESS',
+            details: `Serial Number received for transaction: ${referenceId}`,
             metadata: JSON.stringify({
-              orderId: pembelian.orderId,
-              purchaseStatus
+              serialNumber: sn,
+              referenceId
+            })
+          }
+        });
+      } 
+      // If transaction fails, check for username and attempt to refund
+      else if (purchaseStatus === 'FAILED' && pembelian.username) {
+        // Find user by username from pembelian record
+        const user = await tx.users.findFirst({
+          where: { 
+            username: pembelian.username as string
+          }
+        });
+      
+        // Log user lookup
+        await tx.systemLog.create({
+          data: {
+            type: 'DIGIFLAZZ',
+            parentLogId: logId,
+            action: 'USER_LOOKUP',
+            status: user ? 'FOUND' : 'NOT_FOUND',
+            details: user 
+              ? `User found: ${user.id} (${user.username})` 
+              : `No user found for username: ${pembelian.username}`,
+            metadata: JSON.stringify({
+              username: pembelian.username,
+              userFound: !!user
             })
           }
         });
       
-        // If transaction fails, refund the balance
-        if (purchaseStatus === 'FAILED') {
-          // Find user by username from pembelian record
-          const user = await tx.users.findFirst({
-            where: { 
-              username: pembelian.username as string
-            }
-          });
-        
-          if (!user) {
-            const userNotFoundLog = await tx.systemLog.create({
-              data: {
-                type: 'DIGIFLAZZ',
-                parentLogId: logId,
-                action: 'BALANCE_REFUND_FAILED',
-                status: 'ERROR',
-                errorMessage: 'User not found',
-                details: `No user found with username from pembelian: ${pembelian.username}, reference ID: ${referenceId}`,
-                metadata: JSON.stringify({
-                  username: pembelian.username,
-                  referenceId
-                })
-              }
-            });
-        
-            throw new Error(`User not found for username: ${pembelian.username}`);
-          }
-        
+        if (user && pembayaran) {
           // Refund balance
           const balanceUpdate = await tx.users.update({
             where: { id: user.id },
@@ -213,6 +217,10 @@ export async function POST(req: NextRequest) {
               balance: { increment: parseInt(pembayaran.harga) } 
             }
           });
+
+          // Update log message with refund information
+          logMessage = `Pembayaran dengan username : ${user.username} telah berhasil di refund Sebesar : ${pembayaran.harga}`;
+          refundProcessed = true;
 
           // Create detailed refund log
           const refundLog = await tx.systemLog.create({
@@ -233,22 +241,59 @@ export async function POST(req: NextRequest) {
               })
             }
           });
+        } else if (!user) {
+          // Log user not found
+          const userNotFoundLog = await tx.systemLog.create({
+            data: {
+              type: 'DIGIFLAZZ',
+              parentLogId: logId,
+              action: 'BALANCE_REFUND_FAILED',
+              status: 'ERROR',
+              errorMessage: 'User not found',
+              details: `No user found with username from pembelian: ${pembelian.username}, reference ID: ${referenceId}`,
+              metadata: JSON.stringify({
+                username: pembelian.username,
+                referenceId
+              })
+            }
+          });
+          
+          // Add error information to log message
+          logMessage = `Transaksi gagal. Refund gagal: User ${pembelian.username} tidak ditemukan.`;
+        } else if (!pembayaran) {
+          // Log payment not found
+          const paymentNotFoundLog = await tx.systemLog.create({
+            data: {
+              type: 'DIGIFLAZZ',
+              parentLogId: logId,
+              action: 'BALANCE_REFUND_FAILED',
+              status: 'ERROR',
+              errorMessage: 'Payment not found',
+              details: `No payment found for orderId: ${pembelian.orderId}, reference ID: ${referenceId}`,
+              metadata: JSON.stringify({
+                orderId: pembelian.orderId,
+                referenceId
+              })
+            }
+          });
+          
+          // Add error information to log message
+          logMessage = `${message || "Transaksi gagal"}. Refund gagal: Pembayaran untuk order ${pembelian.orderId} tidak ditemukan.`;
         }
       }
-
-      // Update pembelian record
+      
       const updatedPembelian = await tx.pembelian.update({
         where: { id: pembelian.id },
         data: {
           status: purchaseStatus,
           sn: sn || null,
-          log: message || '',
+          log: logMessage,
           updatedAt: new Date(),
         }
       });
 
       // Log pembelian update
-      const pembelianUpdateLog = await tx.systemLog.create({
+      await tx.systemLog.create({
         data: {
           type: 'DIGIFLAZZ',
           parentLogId: logId,
@@ -259,7 +304,8 @@ export async function POST(req: NextRequest) {
             pembelianId: updatedPembelian.id,
             newStatus: purchaseStatus,
             serialNumber: sn,
-            message
+            logMessage,
+            refundProcessed
           })
         }
       });
@@ -312,7 +358,9 @@ export async function POST(req: NextRequest) {
           metadata: JSON.stringify({
             finalStatus: 'SUCCESS',
             referenceId,
-            purchaseStatus
+            purchaseStatus,
+            refundProcessed,
+            snProvided: !!sn
           })
         }
       });

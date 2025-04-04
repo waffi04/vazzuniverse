@@ -104,7 +104,7 @@ export default function DialogDetailLayanan({
                     <div className="flex items-center gap-2">
                       {layanan.productLogo ? (
                         <Image
-                          src={layanan.productLogo || '/placeholder.svg'}
+                          src={layanan.productLogo }
                           alt={layanan.provider}
                           width={20}
                           height={20}
@@ -286,7 +286,7 @@ export default function DialogDetailLayanan({
                       </div>
                       <div className="mt-2 overflow-hidden rounded-md">
                         <Image
-                          src={layanan.bannerFlashSale || '/placeholder.svg'}
+                          src={layanan.bannerFlashSale}
                           alt="Banner Flash Sale"
                           width={600}
                           height={200}

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,11 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
   const { copy, url, copied, timeLeft, paymentType } = useLogicTransaksi({ data });
   const statusConfig = getStatusConfig(data.status);
   const paymentStatusConfig = data.pembayaran ? getStatusConfig(data.pembayaran.status) : statusConfig;
-  const isPending = data.pembayaran?.status === "PENDING" || data.pembayaran?.status === "PROCESS";
+  const isPending = data.pembayaran?.status === "PENDING";
+  const isFailed = data.pembayaran?.status === "FAILED"
   const timeLeftParts = timeLeft ? timeLeft.split(":").map((part) => part.trim()) : ["00", "00", "00"];
   const [hours, minutes, seconds] = timeLeftParts.length === 3 ? timeLeftParts : ["00", ...timeLeftParts];
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8">
       {/* Grid Layout */}
@@ -63,6 +65,7 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
                 <DetailItem label="Nickname" value={data.nickname || "-"} />
                 {data.userId && <DetailItem label="User Id" value={data.userId} />}
                 {data.zone && <DetailItem label="Zone" value={data.zone} />}
+                {data.log && <DetailItem label="Message" value={data.log} />}
               </div>
             </motion.div>
           </CardContent>
@@ -147,13 +150,13 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
                     </div>
                   )}
                   {/* Payment URL */}
-                  {paymentType === "URL" && data.pembayaran.noPembayaran && (
+                  {paymentType === "URL" && data.pembayaran.noPembayaran &&  isPending && (
                     <div className="mt-2 mb-3">
                       <div className="text-sm text-muted-foreground mb-1">Link Pembayaran:</div>
                       <Button
                         variant="outline"
                         onClick={url}
-                        className="w-full justify-center text-sm py-2 h-10 gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                        className="w-full justify-center text-sm py-2 h-10 gap-2  bg-blue-800"
                       >
                         Buka Link Pembayaran
                       </Button>
@@ -162,7 +165,10 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
                   <DetailItem  label="Status"  value={<Badge status={data.pembayaran.status}/>}/>
                   <DetailItem label="Waktu" value={formatDate(data.pembayaran.createdAt as string)} />
                   <DetailItem label="No. Pembeli" value={`${data.pembayaran.noPembeli}`} valueClassName="" />
+                  {
+                    data.sn && 
                   <DetailItem label="Sn" value={`${data.sn}`} valueClassName="" />
+                  }
                 </div>
               </motion.div>
             </CardContent>
@@ -181,8 +187,8 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
 export function DetailItem({ label, value, valueClassName = "" }  : {label : string,value : string | ReactNode,valueClassName? : string}) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-md text-muted-foreground">{label}</span>
-      <span className={cn("text-md", valueClassName)}>{value}</span>    </div>
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className={cn("text-sm", valueClassName)}>{value}</span>    </div>
   );
 }
 

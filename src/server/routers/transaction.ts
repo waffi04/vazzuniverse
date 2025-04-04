@@ -1,14 +1,19 @@
 import { TRANSACTION_FLOW } from "@/types/transaction";
 import { publicProcedure, router } from "../trpc";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { X } from "lucide-react";
 import { TRPCError } from "@trpc/server";
-import { startOfDay } from "date-fns";
-
 export const adminStats = publicProcedure.query(async ({ ctx }) => {
   try {
+    // Format number to Rupiah
+    const formatToRupiah = (number : number) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(number);
+    };
+
     // Get current date
     const today = new Date();
     const startOfToday = new Date(today);
@@ -38,89 +43,73 @@ export const adminStats = publicProcedure.query(async ({ ctx }) => {
     // Get failed transactions
     const failedTransactions = await ctx.prisma.pembelian.count({
       where: {
-        status:TRANSACTION_FLOW.FAILED
+        status: TRANSACTION_FLOW.FAILED
       }
     });
     
-    // Get today's revenue
-    const todayRevenue = await ctx.prisma.pembelian.aggregate({
+    // Get today's data (revenue and profit combined)
+    const todayData = await ctx.prisma.pembelian.aggregate({
       where: {
-        status: TRANSACTION_FLOW.SUCCESS,
+        status: "SUCCESS",
         createdAt: {
           gte: startOfToday
         }
       },
       _sum: {
+        profit: true,
         harga: true
       }
     });
     
-    // Get today's profit
-    const todayProfit = await ctx.prisma.pembelian.aggregate({
-      where: {
-        status: TRANSACTION_FLOW.SUCCESS,
-        createdAt: {
-          gte: startOfToday
-        }
-      },
-      _sum: {
-        profit: true
-      }
-    });
+    // Gunakan nilai yang aman dengan default 0 jika null
+    const todayProfit = todayData._sum.profit || 0;
+    const todayRevenue = todayData._sum.harga || 0;
     
-    // Get this month's revenue
-    const thisMonthRevenue = await ctx.prisma.pembelian.aggregate({
+    // Hitung persentase profit hanya jika revenue > 0 untuk menghindari division by zero
+    const todayProfitPercentage = todayRevenue > 0 
+      ? (todayProfit / todayRevenue) * 100 
+      : 0;
+    
+    // Get this month's revenue and profit in one query
+    const thisMonthData = await ctx.prisma.pembelian.aggregate({
       where: {
-        status: TRANSACTION_FLOW.SUCCESS,
+        status: "SUCCESS",
         createdAt: {
           gte: startOfMonth
         }
       },
       _sum: {
-        harga: true
-      }
-    });
-    
-    // Get this month's profit
-    const thisMonthProfit = await ctx.prisma.pembelian.aggregate({
-      where: {
-        status: TRANSACTION_FLOW.SUCCESS,
-        createdAt: {
-          gte: startOfMonth
-        }
-      },
-      _sum: {
+        harga: true,
         profit: true
       }
     });
     
-    // Get last month's revenue
-    const lastMonthRevenue = await ctx.prisma.pembelian.aggregate({
+    const thisMonthRevenue = thisMonthData._sum.harga || 0;
+    const thisMonthProfit = thisMonthData._sum.profit || 0;
+    const thisMonthProfitPercentage = thisMonthRevenue > 0 
+      ? (thisMonthProfit / thisMonthRevenue) * 100 
+      : 0;
+    
+    // Get last month's revenue and profit in one query
+    const lastMonthData = await ctx.prisma.pembelian.aggregate({
       where: {
-        status: TRANSACTION_FLOW.SUCCESS,
+        status: "SUCCESS",
         createdAt: {
           gte: startOfLastMonth,
           lt: endOfLastMonth
         }
       },
       _sum: {
-        harga: true
-      }
-    });
-    
-    // Get last month's profit
-    const lastMonthProfit = await ctx.prisma.pembelian.aggregate({
-      where: {
-        status: TRANSACTION_FLOW.SUCCESS,
-        createdAt: {
-          gte: startOfLastMonth,
-          lt: endOfLastMonth
-        }
-      },
-      _sum: {
+        harga: true,
         profit: true
       }
     });
+    
+    const lastMonthRevenue = lastMonthData._sum.harga || 0;
+    const lastMonthProfit = lastMonthData._sum.profit || 0;
+    const lastMonthProfitPercentage = lastMonthRevenue > 0 
+      ? (lastMonthProfit / lastMonthRevenue) * 100 
+      : 0;
     
     // Get payment method stats
     const paymentMethodStats = await ctx.prisma.pembayaran.groupBy({
@@ -129,7 +118,7 @@ export const adminStats = publicProcedure.query(async ({ ctx }) => {
         metode: true
       },
       where: {
-        status: TRANSACTION_FLOW.SUCCESS
+        status: "SUCCESS"
       }
     });
     
@@ -140,7 +129,7 @@ export const adminStats = publicProcedure.query(async ({ ctx }) => {
         tipeTransaksi: true
       },
       where: {
-        status: TRANSACTION_FLOW.SUCCESS
+        status: "SUCCESS"
       }
     });
     
@@ -163,21 +152,33 @@ export const adminStats = publicProcedure.query(async ({ ctx }) => {
         failed: failedTransactions
       },
       revenue: {
-        today: todayRevenue._sum.harga || 0,
-        thisMonth: thisMonthRevenue._sum.harga || 0,
-        lastMonth: lastMonthRevenue._sum.harga || 0
+        today: todayRevenue,
+        thisMonth: thisMonthRevenue,
+        lastMonth: lastMonthRevenue,
+        // Format dalam Rupiah
+        todayFormatted: formatToRupiah(todayRevenue),
+        thisMonthFormatted: formatToRupiah(thisMonthRevenue),
+        lastMonthFormatted: formatToRupiah(lastMonthRevenue)
       },
       profit: {
-        today: todayProfit._sum.profit || 0,
-        thisMonth: thisMonthProfit._sum.profit || 0,
-        lastMonth: lastMonthProfit._sum.profit || 0
+        today: todayProfit,
+        thisMonth: thisMonthProfit,
+        lastMonth: lastMonthProfit,
+        // Format dalam Rupiah
+        todayFormatted: formatToRupiah(todayProfit),
+        thisMonthFormatted: formatToRupiah(thisMonthProfit),
+        lastMonthFormatted: formatToRupiah(lastMonthProfit)
+      },
+      profitPercentage: {
+        today: parseFloat(todayProfitPercentage.toFixed(2)),
+        thisMonth: parseFloat(thisMonthProfitPercentage.toFixed(2)),
+        lastMonth: parseFloat(lastMonthProfitPercentage.toFixed(2))
       },
       paymentMethodStats,
       transactionTypeStats,
       recentTransactions
     };
   } catch (error) {
-    
     throw new Error("Failed to fetch admin statistics");
   }
 });
@@ -204,7 +205,7 @@ export const PembelianAll = router({
     // Gunakan findUnique dengan kondisi yang spesifik
     const purchase = await ctx.prisma.pembelian.findUnique({
       where: {
-        orderId: merchantOrderId // Pastikan tipe data sesuai
+        orderId: merchantOrderId
       },
       include: {
         pembayaran: true,
@@ -239,29 +240,33 @@ export const PembelianAll = router({
       startDate: z.string().optional(),
       endDate: z.string().optional(),
       status: z.string().optional(),
-      page: z.number().min(1).optional(),
-      limit: z.number().min(1).optional(),
-      searchTerm: z.string().optional(), 
+      page: z.number().min(1).optional().default(1),
+      limit: z.number().min(1).optional().default(10),
+      searchTerm: z.string().optional().default(''),
+      all: z.boolean().optional().default(false),
     })
   )
   .query(async ({ ctx, input }) => {
     try {
-      const { status, page = 1, limit = 10, searchTerm = '',endDate,startDate } = input || {};
+      const { status, page, limit, searchTerm, endDate, startDate, all } = input;
+      
+      // Build the where clause
       const where: Prisma.PembelianWhereInput = {};
       
-      // Filter by status if provided
+      // Filter by status
       if (status) {
         where.status = status;
       }
       
-      // Add search filter if provided
+      // Search filter
       if (searchTerm) {
         where.OR = [
-          { orderId: { contains: searchTerm } },
+          { orderId: { contains: searchTerm} },
           { nickname: { contains: searchTerm } },
         ];
       }
-
+      
+      // Date filters
       if (startDate || endDate) {
         where.createdAt = {};
         
@@ -278,19 +283,39 @@ export const PembelianAll = router({
         }
       }
       
-      const skip = (page - 1) * limit;
-      const take = limit;
+      // Return all records if all flag is set
+      if (all) {
+        const allTransactions = await ctx.prisma.pembelian.findMany({
+          where,
+          include: { 
+            pembayaran: true 
+          },
+          orderBy: { 
+            createdAt: 'desc' 
+          },
+        });
+        
+        return {
+          transactions: allTransactions,
+          totalCount: allTransactions.length,
+        };
+      }
       
-      // Fetch paginated data and total count
+      // Pagination
+      const skip = (page - 1) * limit;
+      
+      // Execute queries in parallel
       const [transactions, totalCount] = await Promise.all([
         ctx.prisma.pembelian.findMany({
           where,
           skip,
-          take,
+          take: limit,
           include: {
             pembayaran: true
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { 
+            createdAt: 'desc' 
+          },
         }),
         ctx.prisma.pembelian.count({ where }),
       ]);
@@ -298,10 +323,15 @@ export const PembelianAll = router({
       return {
         transactions,
         totalCount,
+        pageCount: Math.ceil(totalCount / limit),
+        currentPage: page,
       };
     } catch (error) {
-      console.error("Error fetching pembelian data:", error);
-      throw new Error("Failed to fetch pembelian data");
+      // Enhanced error reporting
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch pembelian data: ${error.message}`);
+      }
+      throw new Error("Failed to fetch pembelian data: Unknown error");
     }
   }),
       trackingInvoice  : publicProcedure.input(z.object({

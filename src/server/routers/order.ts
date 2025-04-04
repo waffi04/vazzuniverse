@@ -117,7 +117,7 @@ export const order = router({
       await ctx.prisma.pembelian.create({
         data: {
           orderId: orderId,
-          username: user?.session.user.name || 'unknown',
+          username: user?.session.user.username || 'unknown',
           userId: input.userId,
           zone: input.serverId || '',
           layanan: layanan.layanan,

@@ -146,7 +146,7 @@ export default function FlashSaleForm({ form }: { form: FormProps }) {
                                 <DialogTitle className="p-6">Preview Banner Flash Sale</DialogTitle>
                                 <div className="relative w-full max-h-[70vh] overflow-auto">
                                   <img
-                                    src={imagePreview || "/placeholder.svg"}
+                                    src={imagePreview }
                                     alt="Banner preview full"
                                     className="w-full h-auto object-contain"
                                   />

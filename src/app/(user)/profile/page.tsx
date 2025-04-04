@@ -77,7 +77,7 @@ export default async function ProfilePage() {
                 Get access to premium features and benefits
               </p>
             </div>
-            <Link href={'/profile/deposit'}>
+            <Link href={'/profile/membership'}>
               <FlashingButton />
             </Link>
           </div>

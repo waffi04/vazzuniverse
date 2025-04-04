@@ -10,6 +10,7 @@ import { subCategory } from './sub-category';
 import { adminStats, PembelianAll } from './transaction';
 // import { transaction } from './transaction';
 import { voucher } from './voucher';
+import { WhatsappMessage } from './whatsapp';
 
 export const appRouter = router({
   main: mainRouter,
@@ -22,7 +23,8 @@ export const appRouter = router({
   deposits: Deposits,
   setting: ConfigWeb,
   pembelian  : PembelianAll,
-  member : member
+  member : member,
+  whatsapp : WhatsappMessage
 });
 
 export type AppRouter = typeof appRouter;

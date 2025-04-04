@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
 
     // Using Prisma transaction for all database operations
     return await prisma.$transaction(async (tx) => {
+      const Membership = merchantOrderId.match(/^MEM-(\d+)/);
       const depositIdMatch = merchantOrderId.match(/^DEP-(\d+)/);
       const orderTopUp = merchantOrderId.match(/^VAZ-(\d+)/);
         
@@ -98,7 +99,6 @@ export async function POST(req: NextRequest) {
           }
         });
         
-        // If successful payment, could add credit to user account here
         if (newStatus === 'SUCCESS') {
           // Add credit to user account logic
           const user = await tx.users.findUnique({
@@ -121,6 +121,89 @@ export async function POST(req: NextRequest) {
         });
           
           if (user) {
+            await tx.users.update({
+              where: { username: deposit.username },
+              data: { 
+                balance: { increment: deposit.jumlah }
+              }
+            });
+          }
+        }
+
+                  
+        
+        return NextResponse.json({
+          success: true,
+          message: `Deposit ${newStatus}`,
+          data: {
+            orderId: merchantOrderId,
+            status: newStatus
+          }
+        });
+      }
+
+      if(Membership){
+        const deposit = await tx.deposits.findFirst({
+          where: {
+            depositId: merchantOrderId
+          },
+        });
+
+        if (deposit && deposit.status === 'SUCCESS') {
+          return NextResponse.json({
+            success: true,
+            message: 'Deposit already processed',
+            data: { orderId: merchantOrderId, status: deposit.status }
+          });
+        }
+        
+        if (!deposit) {
+          return NextResponse.json({
+            success: false,
+            message: 'Deposit not found'
+          }, { status: 404 });
+        }
+        
+        // Update deposit status based on resultCode
+        const newStatus = resultCode === '00' ? 'SUCCESS' : 'FAILED';
+        
+        await tx.deposits.update({
+          where: { id: deposit.id },
+          data: { 
+            status: newStatus,
+            updatedAt: new Date()
+          }
+        });
+        
+        if (newStatus === 'SUCCESS') {
+          // Add credit to user account logic
+          const user = await tx.users.findUnique({
+            where: {
+              username: deposit.username
+            }
+          });
+
+        await handleOrderStatusChange({
+          orderData: {
+            amount: deposit.jumlah,
+            link: `${process.env.NEXTAUTH_URL}/profile`,
+            productName: `DEPOSIT PLATINUM ${user?.username}`,
+            status: newStatus,
+            customerName : deposit.username,
+            method: deposit.metode,
+            orderId: merchantOrderId,
+            whatsapp: user?.whatsapp as string
+          }
+        });
+          
+          if (user?.role === "Member" && deposit.jumlah >= 100000) {
+            await tx.users.update({
+              where: { username: deposit.username },
+              data: { 
+                role:"Platinum"
+              }
+            });
+          }else {
             await tx.users.update({
               where: { username: deposit.username },
               data: { 
@@ -181,8 +264,19 @@ export async function POST(req: NextRequest) {
           })
         }
 
-        console.log('Layanan:', layanan);
-        console.log('Pembelian:', pembelian);
+        await handleOrderStatusChange({
+          orderData: {
+            amount: pembelian?.harga as number,
+            link: invoiceLink,
+            productName: layanan?.layanan as string,
+            status: 'PAID',
+            customerName : pembelian?.nickname ?? 'Guest',
+            method: pembayaran?.metode,
+            orderId: merchantOrderId,
+            whatsapp: pembayaran?.noPembeli.toString()
+          }
+        });
+    
 
         if (layanan && pembelian) {
           const reqtoDigi = await digiflazz.TopUp({
@@ -193,7 +287,6 @@ export async function POST(req: NextRequest) {
           });
           
           const datas = reqtoDigi?.data;
-          console.log(datas);
           
           if (datas) {
             const currentPembelianStatus = pembelian.status;
@@ -211,7 +304,18 @@ export async function POST(req: NextRequest) {
                 }
               });
 
-  
+              await handleOrderStatusChange({
+                orderData: {
+                  amount: pembelian?.harga as number,
+                  link: invoiceLink,
+                  productName: layanan?.layanan as string,
+                  status: newStatus,
+                  customerName : pembelian?.nickname ?? 'Guest',
+                  method: pembayaran?.metode,
+                  orderId: merchantOrderId,
+                  whatsapp: pembayaran?.noPembeli.toString()
+                }
+              });
             } else {
               console.log(`Skipping pembelian update because current status (${currentPembelianStatus}) is SUCCESS and new status is ${newStatus}`);
             }

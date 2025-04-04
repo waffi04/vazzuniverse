@@ -7,13 +7,13 @@ export function FormatPrice(price: number) {
   }).format(price);
 }
 
-export function formatDate(date: string): string {
+
+export function formatDate(date: string, format: 'full' | 'date-only' | 'time-only' = 'full'): string {
   // Pastikan input adalah string yang valid
   if (!date) {
     return 'Invalid Date';
   }
 
-  // Konversi string tanggal menjadi objek Date
   const dateObject = new Date(date);
 
   // Periksa apakah objek Date valid
@@ -21,16 +21,32 @@ export function formatDate(date: string): string {
     return 'Invalid Date';
   }
 
-  // Format tanggal menggunakan Intl.DateTimeFormat untuk lokal Indonesia
-  const formattedDate = new Intl.DateTimeFormat('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZone: 'Asia/Jakarta', // Opsional, jika ingin menyesuaikan zona waktu
-  }).format(dateObject);
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'Asia/Jakarta',
+  };
 
+  switch (format) {
+    case 'date-only':
+      options.year = 'numeric';
+      options.month = 'long';
+      options.day = 'numeric';
+      break;
+    case 'time-only':
+      options.hour = '2-digit';
+      options.minute = '2-digit';
+      options.second = '2-digit';
+      break;
+    case 'full':
+    default:
+      options.year = 'numeric';
+      options.month = 'long';
+      options.day = 'numeric';
+      options.hour = '2-digit';
+      options.minute = '2-digit';
+      options.second = '2-digit';
+      break;
+  }
+
+  const formattedDate = new Intl.DateTimeFormat('id-ID', options).format(dateObject);
   return formattedDate;
 }

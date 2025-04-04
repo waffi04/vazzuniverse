@@ -378,7 +378,7 @@ export function BannerSlider() {
                 <Image
                   width={1000}
                   height={500}
-                  src={bannerQuery.data?.data.banners[currentIndex]?.path || "/placeholder.svg"}
+                  src={bannerQuery.data?.data.banners[currentIndex]?.path }
                   alt={`Banner ${currentIndex + 1}`}
                   className={`w-full h-full ${isMobile ? "object-contain" : "object-cover"} rounded-lg`}
                 />
