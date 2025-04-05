@@ -12,6 +12,9 @@ const nextConfig = {
         remotePatterns: [
             {
                 hostname: 'res.cloudinary.com',
+            },
+            {
+                hostname: 'upload.wikimedia.org',
             }
         ]
     }

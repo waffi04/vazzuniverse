@@ -108,7 +108,7 @@ export const WhatsappMessage  = router({
       return {
         status: true,
         message: "OTP verified successfully",
-        passwordlink: `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`,
+        passwordlink: `${process.env.NEXTAUTH_URL}/auth/resetpassword?token=${token}`,
       };
     } catch (error) {
       console.error("Error verifying OTP:", error);

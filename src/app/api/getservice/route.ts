@@ -185,7 +185,6 @@ export async function GET() {
                   item.price +
                     (item.price * defaultProfits.profitPlatinum) / 100
                 );
-                const platinumPrice = Math.round(platinumBasePrice * 0.99); // Apply 1% discount
 
                 await prisma.layanan.create({
                   data: {
@@ -194,7 +193,7 @@ export async function GET() {
                     providerId: item.buyer_sku_code,
                     harga: regularPrice,
                     hargaReseller: resellerPrice,
-                    hargaPlatinum: platinumPrice,
+                    hargaPlatinum: platinumBasePrice,
                     hargaGold: goldPrice,
                     profit: defaultProfits.profit,
                     profitReseller: defaultProfits.profitReseller,
@@ -234,12 +233,6 @@ export async function GET() {
                   item.price + (item.price * existingService.profitGold) / 100
                 );
 
-                // For platinum, apply the profit margin and then subtract 1%
-                // const platinumBasePrice = Math.round(
-                //   item.price +
-                //     (item.price * existingService.profitPlatinum) / 100
-                // );
-                // const platinumPrice = Math.round(platinumBasePrice * 0.99); 
                 const platinumBasePrice = Math.round(
                   item.price + (item.price * defaultProfits.profitPlatinum) / 100
                 );

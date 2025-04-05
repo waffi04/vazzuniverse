@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Transaction } from "@/features/pages/dashboard/recent-transactions";
 import { formatDate } from "@/utils/formatPrice";
+import { trpc } from "@/utils/trpc";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -8,10 +9,15 @@ interface ExportToExcelProps {
   data: Transaction[];
   status : string
   date : string
+  onClick : ()  => void
 }
 
-export function ExportToExcel({ data,status,date }: ExportToExcelProps) {
+export function ExportToExcel({ data,status,date,onClick }: ExportToExcelProps) {
+
+ 
+
     const handleExport = () => {
+      onClick()
         // Membuat array data yang diformat untuk Excel
         const formattedData = data.map((transaction) => {
           const profitInRupiah =

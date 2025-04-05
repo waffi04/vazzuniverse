@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useId } from "react"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
@@ -9,19 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams, useRouter, useParams } from "next/navigation"
 import { trpc } from "@/utils/trpc"
 import { toast } from "sonner"
 
-export default function ResetPassword() {
+export function ResetPassword() {
+  const {slug}  = useParams()
   const router = useRouter();
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
-  const searchParams = useSearchParams()
-  const token = searchParams.get("token") ?? ""
+
 
   const { mutate: resetPasswordMutate, isLoading } = trpc.whatsapp.newPass.useMutation();
 
@@ -44,7 +43,7 @@ export default function ResetPassword() {
     
     resetPasswordMutate(
       {
-        token,
+        token : slug as string,
         password,
         retypePassword: confirmPassword
       },
@@ -66,23 +65,7 @@ export default function ResetPassword() {
     );
   }
 
-  if (!token) {
-    return (
-      <main className="flex justify-center items-center min-h-screen p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Link Tidak Valid</CardTitle>
-            <CardDescription>Link reset password tidak valid atau sudah kadaluarsa</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Button className="w-full" onClick={() => router.push("/auth/forgot-password")}>
-              Kembali ke Lupa Password
-            </Button>
-          </CardFooter>
-        </Card>
-      </main>
-    )
-  }
+  
 
   return (
     <main className="flex justify-center items-center min-h-screen p-4">

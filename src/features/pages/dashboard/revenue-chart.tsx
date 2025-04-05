@@ -6,24 +6,18 @@ import { Card } from '@/components/ui/card';
 interface RevenueChartProps {
   data: {
     thisMonth: number;
-    lastMonth: number;
   };
 }
 
 export function RevenueChart({ data }: RevenueChartProps) {
   const chartData = [
     {
-      name: 'Last Month',
-      revenue: data.lastMonth,
-    },
-    {
       name: 'This Month',
       revenue: data.thisMonth,
     },
   ];
 
-  // If no data, show empty state
-  if (data.thisMonth === 0 && data.lastMonth === 0) {
+  if (data.thisMonth === 0 ) {
     return (
       <div className="h-[300px] flex items-center justify-center">
         <p className="text-muted-foreground">No revenue data available</p>

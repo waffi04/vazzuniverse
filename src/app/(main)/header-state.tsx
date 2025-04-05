@@ -12,6 +12,7 @@ const categoryTypes = [
   { id: 'gamelainnya', label: 'Games' },
   { id: 'pulsa', label: 'Pulsa' },
   { id: 'voucher', label: 'Voucher' },
+  { id: 'PLN', label: 'Pln' },
 ] as const;
 
 export function CategoryTypeSelector({

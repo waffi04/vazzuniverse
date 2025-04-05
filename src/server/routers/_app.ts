@@ -8,7 +8,6 @@ import { methods } from './method';
 import { order } from './order';
 import { subCategory } from './sub-category';
 import { adminStats, PembelianAll } from './transaction';
-// import { transaction } from './transaction';
 import { voucher } from './voucher';
 import { WhatsappMessage } from './whatsapp';
 

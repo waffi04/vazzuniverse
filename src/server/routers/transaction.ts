@@ -3,187 +3,166 @@ import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+
+const getStartOfDayInWIB = () => {
+  const now = new Date();
+  const offset = 7 * 60; 
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000); 
+  const wibTime = utcTime + (offset * 60000); 
+  const startOfDay = new Date(wibTime);
+  startOfDay.setHours(0, 0, 0, 0);
+  return startOfDay;
+};
+
+const getStartOfMonthInWIB = () => {
+  const now = new Date();
+  const offset = 7 * 60;
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000); 
+  const wibTime = utcTime + (offset * 60000); 
+  const startOfMonth = new Date(wibTime);
+  startOfMonth.setDate(1); 
+  startOfMonth.setHours(0, 0, 0, 0); 
+  return startOfMonth;
+};
+
 export const adminStats = publicProcedure.query(async ({ ctx }) => {
   try {
-    // Format number to Rupiah
-    const formatToRupiah = (number : number) => {
+    // Fungsi untuk format ke Rupiah
+    const formatToRupiah = (number: number) => {
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
       }).format(number);
     };
 
-    // Get current date
-    const today = new Date();
-    const startOfToday = new Date(today);
-    startOfToday.setHours(0, 0, 0, 0);
-    
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
-    // Get total transactions
-    const totalTransactions = await ctx.prisma.pembelian.count();
-    
-    // Get successful transactions
-    const successfulTransactions = await ctx.prisma.pembelian.count({
-      where: {
-        status: "SUCCESS"
-      }
-    });
-    
-    // Get pending transactions
-    const pendingTransactions = await ctx.prisma.pembelian.count({
-      where: {
-        status: TRANSACTION_FLOW.PENDING
-      }
-    });
-    
-    // Get failed transactions
-    const failedTransactions = await ctx.prisma.pembelian.count({
-      where: {
-        status: TRANSACTION_FLOW.FAILED
-      }
-    });
-    
-    // Get today's data (revenue and profit combined)
+    // Hitung awal hari dan bulan
+    const startOfToday = getStartOfDayInWIB();
+    const startOfMonth = getStartOfMonthInWIB();
+
+    // Agregasi pendapatan hari ini dan bulan ini
     const todayData = await ctx.prisma.pembelian.aggregate({
       where: {
         status: "SUCCESS",
         createdAt: {
-          gte: startOfToday
-        }
+          gte: startOfToday,
+        },
       },
       _sum: {
-        profit: true,
-        harga: true
-      }
+        harga: true,
+      },
     });
-    
-    // Gunakan nilai yang aman dengan default 0 jika null
-    const todayProfit = todayData._sum.profit || 0;
-    const todayRevenue = todayData._sum.harga || 0;
-    
-    // Hitung persentase profit hanya jika revenue > 0 untuk menghindari division by zero
-    const todayProfitPercentage = todayRevenue > 0 
-      ? (todayProfit / todayRevenue) * 100 
-      : 0;
-    
-    // Get this month's revenue and profit in one query
+
     const thisMonthData = await ctx.prisma.pembelian.aggregate({
       where: {
         status: "SUCCESS",
         createdAt: {
-          gte: startOfMonth
-        }
+          gte: startOfMonth,
+        },
       },
       _sum: {
         harga: true,
-        profit: true
-      }
+      },
     });
-    
+
+    const todayRevenue = todayData._sum.harga || 0;
     const thisMonthRevenue = thisMonthData._sum.harga || 0;
-    const thisMonthProfit = thisMonthData._sum.profit || 0;
-    const thisMonthProfitPercentage = thisMonthRevenue > 0 
-      ? (thisMonthProfit / thisMonthRevenue) * 100 
-      : 0;
-    
-    // Get last month's revenue and profit in one query
-    const lastMonthData = await ctx.prisma.pembelian.aggregate({
+
+    // Hitung profit hari ini dan bulan ini
+    const transactionsToday = await ctx.prisma.pembelian.findMany({
       where: {
         status: "SUCCESS",
         createdAt: {
-          gte: startOfLastMonth,
-          lt: endOfLastMonth
-        }
+          gte: startOfToday,
+        },
       },
-      _sum: {
+      select: {
         harga: true,
-        profit: true
-      }
-    });
-    
-    const lastMonthRevenue = lastMonthData._sum.harga || 0;
-    const lastMonthProfit = lastMonthData._sum.profit || 0;
-    const lastMonthProfitPercentage = lastMonthRevenue > 0 
-      ? (lastMonthProfit / lastMonthRevenue) * 100 
-      : 0;
-    
-    // Get payment method stats
-    const paymentMethodStats = await ctx.prisma.pembayaran.groupBy({
-      by: ['metode'],
-      _count: {
-        metode: true
+        profit: true,
       },
-      where: {
-        status: "SUCCESS"
-      }
     });
-    
-    // Get transaction type stats
-    const transactionTypeStats = await ctx.prisma.pembelian.groupBy({
-      by: ['tipeTransaksi'],
-      _count: {
-        tipeTransaksi: true
+
+    const transactionsThisMonth = await ctx.prisma.pembelian.findMany({
+      where: {
+        status: "SUCCESS",
+        createdAt: {
+          gte: startOfMonth,
+        },
       },
-      where: {
-        status: "SUCCESS"
-      }
+      select: {
+        harga: true,
+        profit: true,
+      },
     });
+    const todayProfit = transactionsToday.reduce((sum, transaction) => {
+      const profitAmount = Math.round(transaction.harga * transaction.profit / (100 + transaction.profit));
+      return sum + profitAmount;
+    }, 0);
     
-    // Recent transactions
-    const recentTransactions = await ctx.prisma.pembelian.findMany({
+    const thisMonthProfit = transactionsThisMonth.reduce((sum, transaction) => {
+      const profitAmount = Math.round(transaction.harga * transaction.profit / (100 + transaction.profit));
+      return sum + profitAmount;
+    }, 0);
+
+    // Hitung total transaksi
+    const totalTransactions = await ctx.prisma.pembelian.count();
+
+    // Hitung transaksi berdasarkan status
+    const successfulTransactions = await ctx.prisma.pembelian.count({
+      where: { status: "SUCCESS" },
+    });
+
+    const pendingTransactions = await ctx.prisma.pembelian.count({
+      where: { status: "PENDING" },
+    });
+
+    const failedTransactions = await ctx.prisma.pembelian.count({
+      where: { status: "FAILED" },
+    });
+
+
+    const recentTransactions =   await  ctx.prisma.pembelian.findMany({
       take: 10,
-      orderBy: {
-        createdAt: 'desc'
-      },
       include: {
         pembayaran: true
-      }
-    });
+      },
+      orderBy: { 
+        createdAt: 'desc' 
+      },
+    })
+
+    const successPercentage =
+      totalTransactions > 0 ? ((successfulTransactions / totalTransactions) * 100).toFixed(2) : 0;
+    const failedPercentage =
+      totalTransactions > 0 ? ((failedTransactions / totalTransactions) * 100).toFixed(2) : 0;
 
     return {
       totalTransactions,
+      recentTransactions,
       statusCounts: {
         successful: successfulTransactions,
         pending: pendingTransactions,
-        failed: failedTransactions
+        failed: failedTransactions,
       },
       revenue: {
-        today: todayRevenue,
-        thisMonth: thisMonthRevenue,
-        lastMonth: lastMonthRevenue,
-        // Format dalam Rupiah
-        todayFormatted: formatToRupiah(todayRevenue),
-        thisMonthFormatted: formatToRupiah(thisMonthRevenue),
-        lastMonthFormatted: formatToRupiah(lastMonthRevenue)
+        today: formatToRupiah(todayRevenue),
+        thisMonthFormatted : thisMonthRevenue,
+        thisMonth: formatToRupiah(thisMonthRevenue),
       },
       profit: {
-        today: todayProfit,
-        thisMonth: thisMonthProfit,
-        lastMonth: lastMonthProfit,
-        // Format dalam Rupiah
-        todayFormatted: formatToRupiah(todayProfit),
-        thisMonthFormatted: formatToRupiah(thisMonthProfit),
-        lastMonthFormatted: formatToRupiah(lastMonthProfit)
+        today: formatToRupiah(todayProfit),
+        thisMonth: formatToRupiah(thisMonthProfit),
       },
-      profitPercentage: {
-        today: parseFloat(todayProfitPercentage.toFixed(2)),
-        thisMonth: parseFloat(thisMonthProfitPercentage.toFixed(2)),
-        lastMonth: parseFloat(lastMonthProfitPercentage.toFixed(2))
+      percentages: {
+        success: `${successPercentage}%`,
+        failed: `${failedPercentage}%`,
       },
-      paymentMethodStats,
-      transactionTypeStats,
-      recentTransactions
     };
   } catch (error) {
     throw new Error("Failed to fetch admin statistics");
   }
 });
-
-
 export const PembelianAll = router({
   getId: publicProcedure
   .input(

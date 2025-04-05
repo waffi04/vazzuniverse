@@ -1,5 +1,4 @@
 import { AdminProvider, AuthProvider } from '@/components/layouts/provider/admin-provider';
-import { SessionProvider } from 'next-auth/react';
 import React, { ReactNode } from 'react';
 import { User } from '@/types/schema/user';
 import { NavbarAdmin } from '@/components/layouts/navbar-admin';

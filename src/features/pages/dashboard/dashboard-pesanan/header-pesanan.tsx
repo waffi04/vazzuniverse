@@ -115,7 +115,6 @@ export function HeaderPesanan({
 
   // Get export filename
   const getExportFilename = () => {
-    onSetAll(true)
     const statusText = activeFilter || "ALL";
     const dateText = startDate || endDate 
       ? `${formatDate(startDate?.toISOString() || "", 'date-only')}-${formatDate(endDate?.toISOString() || "", 'date-only')}`
@@ -256,10 +255,12 @@ export function HeaderPesanan({
         </DropdownMenu>
 
         {/* Export Button */}
+
         <ExportToExcel 
           data={data as Transaction[]} 
           status={activeFilter || "ALL"} 
           date={getExportFilename()}
+          onClick={()  => onSetAll(true)}
         />
       </div>
     </section>
