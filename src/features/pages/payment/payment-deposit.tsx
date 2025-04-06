@@ -60,7 +60,7 @@ export function PaymentMethodUsingDeposit({
         </div>
         <div className="flex-grow space-y-1">
           <p className="text-sm font-medium text-blue-100">
-            Bayar dengan Koin
+            Saldo Akun
           </p>
           <p className="text-xs text-blue-300">
             Saldo Anda: {FormatPrice(balance)}

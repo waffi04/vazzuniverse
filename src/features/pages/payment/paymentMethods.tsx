@@ -107,7 +107,7 @@ export function PaymentMethods({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Coins className="h-5 w-5 text-yellow-400" />
-                <span className="font-medium">Bayar dengan Koin</span>
+                <span className="font-medium">Saldo Akun</span>
                 {displayAmount && <span>{FormatPrice(displayAmount)}</span>}
                 {!amount && (
                   <span className="ml-2 text-xs text-red-300 flex items-center gap-1">

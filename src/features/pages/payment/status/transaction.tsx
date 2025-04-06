@@ -65,7 +65,7 @@ export function TransactionDetails({ data, onBack}: TransactionDetailsProps) {
                 <DetailItem label="Nickname" value={data.nickname || "-"} />
                 {data.userId && <DetailItem label="User Id" value={data.userId} />}
                 {data.zone && <DetailItem label="Zone" value={data.zone} />}
-                {data.log && <DetailItem label="Message" value={data.log} />}
+                {data.log && <DetailItem label="Message" value={data.log} valueClassName="items-end text-end"/>}
               </div>
             </motion.div>
           </CardContent>

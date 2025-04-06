@@ -9,7 +9,7 @@ export function FlowProgress({ status }: { status: TRANSACTION_FLOW }) {
   );
 
   return (
-    <div className="w-full py-20 md:flex md:flex-col hidden">
+    <div className="w-full pt-20 pb-10 md:flex md:flex-col hidden">
       <div className="flex items-center justify-between">
         {stepsTransaction.map((step, index) => {
           const isCompleted = index < currentStepIndex;

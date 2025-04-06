@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
           });
 
           // Update log message with refund information
-          logMessage = `Pembayaran dengan username : ${user.username} telah berhasil di refund Sebesar : ${pembayaran.harga}`;
+          logMessage = `Transakasi gagal, saldo otomatis kembali menjadi Koin Akun `;
           refundProcessed = true;
 
           // Create detailed refund log

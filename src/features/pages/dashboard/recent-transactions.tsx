@@ -65,7 +65,6 @@ export function RecentTransactions({ data }: RecentTransactionsProps) {
           <TableHead className='text-center'>No. Pembeli</TableHead>
           <TableHead>Payment Method</TableHead>
           <TableHead>Status Pesanan</TableHead>
-          <TableHead>Profit</TableHead>
           <TableHead>Status Pembayaran</TableHead>
           <TableHead className="text-right">Date</TableHead>
         </TableRow>
@@ -89,9 +88,6 @@ export function RecentTransactions({ data }: RecentTransactionsProps) {
               >
                 {transaction.status}
               </Badge>
-            </TableCell>
-            <TableCell>
-              {transaction.profit}
             </TableCell>
             <TableCell className='text-center'>
               <Badge 
