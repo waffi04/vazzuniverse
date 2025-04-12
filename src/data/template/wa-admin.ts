@@ -87,24 +87,24 @@ Pesanan sedang diproses. Pembayaran telah dikonfirmasi.
 📋 *Catatan*: Harap perbarui status pesanan setelah pengiriman.`;
   } else if (status === 'SUCCESS') {
     message = `✅ *TRANSAKSI BERHASIL*
-    
-${separator}
-    
-🆔 *ID Pesanan*: ${orderId}
-👤 *Pelanggan*: ${customerName}
-📦 *Produk*: ${productName}
-💰 *Jumlah*: Rp${formattedAmount}
-📱 *WhatsApp*: ${whatsapp || '-'}
-💳 *Metode Pembayaran*: ${method || '-'}
-    
-${separator}
-    
-🎉 *Keterangan*: 
-Transaksi telah berhasil dikonfirmasi. Pesanan sudah selesai diproses.
-    
-🔗 *Detail Pesanan*: ${link}
-    
-📊 *Status*: Pesanan telah selesai.`;
+          
+      ${separator}
+          
+      🆔 *ID Pesanan*: ${orderId}
+      👤 *Pelanggan*: ${customerName}
+      📦 *Produk*: ${productName}
+      💰 *Jumlah*: Rp${formattedAmount}
+      📱 *WhatsApp*: ${whatsapp || '-'}
+      💳 *Metode Pembayaran*: ${method || '-'}
+          
+      ${separator}
+          
+      🎉 *Keterangan*: 
+      Transaksi telah berhasil dikonfirmasi. Pesanan sudah selesai diproses.
+          
+      🔗 *Detail Pesanan*: ${link}
+          
+      📊 *Status*: Pesanan telah selesai.`;
   } else if (status === 'FAILED') {
     message = `❌ *PEMBAYARAN GAGAL*
     

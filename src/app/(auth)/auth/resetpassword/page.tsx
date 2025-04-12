@@ -1,4 +1,4 @@
-import { ResetPassword } from "./[slug]/clientPage";
+import { ResetPassword } from "./token/[slug]/clientPage";
 
 
 export default function Page(){

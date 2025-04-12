@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tag } from 'lucide-react';
-import { VoucherCards } from './voucher-cards';
+import {VoucherTable} from './voucher-table';
+import { VoucherTableSkeleton } from '@/components/ui/skeleton/voucher_skeleton';
 
 export function VoucherPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,33 +43,11 @@ export function VoucherPage() {
       />
 
       <div className="m-8">
-        <h2 className="text-2xl font-bold mb-4">Available Vouchers</h2>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, index) => (
-              <Card key={index} className="border">
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-5 w-1/2 mb-2" />
-                  <Skeleton className="h-4 w-3/4" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-2/3" />
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Skeleton className="h-9 w-20" />
-                  <Skeleton className="h-9 w-24" />
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+        {isLoading ? ( <VoucherTableSkeleton />
         ) : data && data.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.map((voucher) => (
-              <VoucherCards key={voucher.id} voucher={voucher} />
-            ))}
-          </div>
+  
+              <VoucherTable vouchers={data} />
+            
         ) : (
           <div className="text-center py-12">
             <Tag className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

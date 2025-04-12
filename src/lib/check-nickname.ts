@@ -1,5 +1,6 @@
 import { BASE_URL_VALIDATE_NICKNAME } from '@/constants';
 import { CheckNickNameReq, validateCheckNickNameReq } from '@/data/check-code';
+import { log } from 'console';
 
 interface Result {
   success: boolean;
@@ -61,7 +62,6 @@ export async function CheckNickName(
     const response = await fetch(url, {
       method: 'GET',
     });
-
     const data = await response.json();
     return {
       success: data.success || false,

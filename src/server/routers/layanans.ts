@@ -215,6 +215,7 @@ export const Layanans = router({
         const subCategories = await ctx.prisma.subCategory.findMany({
           where: {
             categoryId: category?.id,
+            active: true,
           },
         });
         const data = await ctx.prisma.layanan.findMany({

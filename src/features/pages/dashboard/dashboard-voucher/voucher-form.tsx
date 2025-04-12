@@ -103,7 +103,7 @@ export function VoucherForm({ initialData, onSuccess }: VoucherFormProps) {
       }
 
       if (expiryDate < startDate) {
-        toast.error('expiry date harus lebih besok dari start date');
+        toast.error('hari berakhir harus lebih besok dari hari dimulainya voucher');
         return;
       }
       const formattedValues = {
@@ -144,14 +144,12 @@ export function VoucherForm({ initialData, onSuccess }: VoucherFormProps) {
   const formatDateSafely = (date: Date | string | null | undefined) => {
     if (!date) return '';
     try {
-      // Convert string "Invalid Date" to empty string
       const dateObj = new Date(date);
       if (isNaN(dateObj.getTime())) {
         return 'Invalid date';
       }
       return format(dateObj, 'PPP');
     } catch (e) {
-      console.error('Date formatting error:', e);
       return 'Invalid date';
     }
   };
@@ -359,45 +357,45 @@ export function VoucherForm({ initialData, onSuccess }: VoucherFormProps) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-4" align="start">
-  <div className="space-y-2">
-    <label htmlFor="date-picker" className="text-sm font-medium">
-      Select Date
-    </label>
-    <input
-  id="date-picker"
-  type="date"
-  className="w-full rounded-md border border-input bg-background px-3 py-2"
-  value={(() => {
-    try {
-      const dateValue = watch('startDate');
-      if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
-        return dateValue.toISOString().split('T')[0];
-      } else {
-        const fallbackDate = new Date(dateValue || defaultStartDate);
-        return !isNaN(fallbackDate.getTime()) 
-          ? fallbackDate.toISOString().split('T')[0] 
-          : new Date().toISOString().split('T')[0];
-      }
-    } catch (e) {
-      return new Date().toISOString().split('T')[0];
-    }
-  })()}
-  onChange={(e) => {
-    if (e.target.value) {
-      setValue('startDate', new Date(e.target.value));
-    }
-  }}
-  min={new Date().toISOString().split('T')[0]}
-/>
-    <div className="flex justify-end">
-      <button
-        type="button"
-        className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
-        onClick={() => setValue('startDate', new Date())}
-      >
-        Today
-      </button>
-    </div>
+              <div className="space-y-2">
+                <label htmlFor="date-picker" className="text-sm font-medium">
+                  Select Date
+                </label>
+                <input
+              id="date-picker"
+              type="date"
+              className="w-full rounded-md border border-input bg-background px-3 py-2"
+              value={(() => {
+                try {
+                  const dateValue = watch('startDate');
+                  if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
+                    return dateValue.toISOString().split('T')[0];
+                  } else {
+                    const fallbackDate = new Date(dateValue || defaultStartDate);
+                    return !isNaN(fallbackDate.getTime()) 
+                      ? fallbackDate.toISOString().split('T')[0] 
+                      : new Date().toISOString().split('T')[0];
+                  }
+                } catch (e) {
+                  return new Date().toISOString().split('T')[0];
+                }
+              })()}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setValue('startDate', new Date(e.target.value));
+                }
+              }}
+              min={new Date().toISOString().split('T')[0]}
+            />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
+                    onClick={() => setValue('startDate', new Date())}
+                  >
+                    Today
+                  </button>
+                </div>
   </div>
 </PopoverContent>
                 </Popover>
@@ -431,93 +429,60 @@ export function VoucherForm({ initialData, onSuccess }: VoucherFormProps) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-4" align="start">
-  <div className="space-y-2">
-    <label htmlFor="expiry-date-picker" className="text-sm font-medium">
-      Select Expiry Date
-    </label>
-    <input
-  id="expiry-date-picker"
-  type="date"
-  className="w-full rounded-md border border-input bg-background px-3 py-2"
-  value={(() => {
-    try {
-      const dateValue = watch('expiryDate');
-      if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
-        return dateValue.toISOString().split('T')[0];
-      } else {
-        const fallbackDate = new Date(dateValue || defaultExpiryDate);
-        return !isNaN(fallbackDate.getTime()) 
-          ? fallbackDate.toISOString().split('T')[0] 
-          : new Date().toISOString().split('T')[0];
-      }
-    } catch (e) {
-      return new Date().toISOString().split('T')[0];
-    }
-  })()}
-  onChange={(e) => {
-    if (e.target.value) {
-      setValue('expiryDate', new Date(e.target.value));
-    }
-  }}
-  min={(() => {
-    try {
-      // Get the later of today or startDate
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const startDateValue = watch('startDate');
-      const startDate = startDateValue instanceof Date && !isNaN(startDateValue.getTime())
-        ? startDateValue
-        : new Date(startDateValue || defaultStartDate);
-      
-      if (isNaN(startDate.getTime())) {
-        return today.toISOString().split('T')[0];
-      }
-      
-      return startDate > today 
-        ? startDate.toISOString().split('T')[0] 
-        : today.toISOString().split('T')[0];
-    } catch (e) {
-      return new Date().toISOString().split('T')[0];
-    }
-  })()}
-/>
-    <div className="flex justify-end space-x-2">
-      <button
-        type="button"
-        className="rounded-md bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground"
-        onClick={() => {
-          const startDate = watch('startDate') instanceof Date
-            ? watch('startDate')
-            : new Date(watch('startDate') || defaultStartDate);
-          
-          // Set to 7 days after start date
-          const newDate = new Date(startDate);
-          newDate.setDate(newDate.getDate() + 7);
-          setValue('expiryDate', newDate);
-        }}
-      >
-        +7 Days
-      </button>
-      <button
-        type="button"
-        className="rounded-md bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground"
-        onClick={() => {
-          const startDate = watch('startDate') instanceof Date
-            ? watch('startDate')
-            : new Date(watch('startDate') || defaultStartDate);
-          
-          // Set to 30 days after start date
-          const newDate = new Date(startDate);
-          newDate.setDate(newDate.getDate() + 30);
-          setValue('expiryDate', newDate);
-        }}
-      >
-        +30 Days
-      </button>
-    </div>
-  </div>
-</PopoverContent>
+                  <div className="space-y-2">
+                    <label htmlFor="expiry-date-picker" className="text-sm font-medium">
+                      Select Expiry Date
+                    </label>
+                    <input
+                  id="expiry-date-picker"
+                  type="date"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                  value={(() => {
+                    try {
+                      const dateValue = watch('expiryDate');
+                      if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
+                        return dateValue.toISOString().split('T')[0];
+                      } else {
+                        const fallbackDate = new Date(dateValue || defaultExpiryDate);
+                        return !isNaN(fallbackDate.getTime()) 
+                          ? fallbackDate.toISOString().split('T')[0] 
+                          : new Date().toISOString().split('T')[0];
+                      }
+                    } catch (e) {
+                      return new Date().toISOString().split('T')[0];
+                    }
+                  })()}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setValue('expiryDate', new Date(e.target.value));
+                    }
+                  }}
+                  min={(() => {
+                    try {
+                      // Get the later of today or startDate
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      
+                      const startDateValue = watch('startDate');
+                      const startDate = startDateValue instanceof Date && !isNaN(startDateValue.getTime())
+                        ? startDateValue
+                        : new Date(startDateValue || defaultStartDate);
+                      
+                      if (isNaN(startDate.getTime())) {
+                        return today.toISOString().split('T')[0];
+                      }
+                      
+                      return startDate > today 
+                        ? startDate.toISOString().split('T')[0] 
+                        : today.toISOString().split('T')[0];
+                    } catch (e) {
+                      return new Date().toISOString().split('T')[0];
+                    }
+                  })()}
+                />
+                  
+                  </div>
+                </PopoverContent>
                 </Popover>
                 {errors.expiryDate && (
                   <p className="text-sm font-medium text-destructive">
@@ -551,25 +516,7 @@ export function VoucherForm({ initialData, onSuccess }: VoucherFormProps) {
           </TabsContent>
 
           {/* Categories Tab */}
-          <TabsContent value="categories" className="space-y-6">
-            {/* Berlaku untuk Semua Kategori */}
-            <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <Label className="text-base">
-                  Berlaku untuk Semua Kategori
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Saat diaktifkan, voucher ini akan berlaku untuk semua kategori
-                  produk
-                </p>
-              </div>
-              <Switch
-                checked={isForAllCategories}
-                onCheckedChange={(checked) =>
-                  setValue('isForAllCategories', checked)
-                }
-              />
-            </div>
+          <TabsContent value="categories" className="space-y-6">           
 
             {/* Kategori (hanya jika tidak berlaku untuk semua kategori) */}
             {!isForAllCategories && categories && (

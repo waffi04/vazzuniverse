@@ -111,7 +111,6 @@ export const voucher = router({
         if (error instanceof TRPCError) {
           console.error(error.message);
         }
-        console.log(error);
         throw error;
       }
     }),
@@ -206,7 +205,7 @@ export const voucher = router({
         });
       } catch (error) {
         if (error instanceof TRPCError) {
-          console.error(error.message);
+         throw new Error("Terjadi Kesalahan")
         }
         throw error;
       }
@@ -293,13 +292,13 @@ export const voucher = router({
             // Hitung diskon
             let discountAmount = 0;
 
-            if (voucher.discountType === 'percentage') {
+            if (voucher.discountType === 'PERCENTAGE') {
               discountAmount = (input.amount * voucher.discountValue) / 100;
 
               if (voucher.maxDiscount && discountAmount > voucher.maxDiscount) {
                 discountAmount = voucher.maxDiscount;
               }
-            } else if (voucher.discountType === 'fixed') {
+            } else if (voucher.discountType === 'FIXED') {
               discountAmount = voucher.discountValue;
 
               if (discountAmount > input.amount) {

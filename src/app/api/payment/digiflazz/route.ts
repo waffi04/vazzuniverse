@@ -373,6 +373,8 @@ export async function POST(req: NextRequest) {
         }
       });
     }, {
+      maxWait: 5000, 
+      timeout: 10000,
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
 

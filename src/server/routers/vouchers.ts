@@ -90,7 +90,7 @@ function calculateDiscount(voucher: any, amount: number): DiscountResult {
   let discountAmount = 0;
 
   // Handle percentage-based discounts
-  if (voucher.discountType === 'percentage') {
+  if (voucher.discountType === 'PERCENTAGE') {
     // Ensure percentage is valid (0-100)
     const validPercentage = Math.min(Math.max(voucher.discountValue, 0), 100);
     discountAmount = (amount * validPercentage) / 100;
@@ -101,7 +101,7 @@ function calculateDiscount(voucher: any, amount: number): DiscountResult {
     }
   }
   // Handle fixed amount discounts
-  else if (voucher.discountType === 'fixed') {
+  else if (voucher.discountType === 'FIXED') {
     discountAmount = voucher.discountValue;
 
     // Don't allow negative final amounts
@@ -132,7 +132,6 @@ async function updateVoucherUsage(
     data: { usageCount: { increment: 1 } },
   });
 
-  // Check if we've hit the limit and deactivate if needed
   if (
     voucher.usageLimit !== null &&
     voucher.usageCount + 1 >= voucher.usageLimit
@@ -203,5 +202,4 @@ export const applyVoucher = publicProcedure
     }
   });
 
-// For completeness, here's how you would define the Voucher model in TypeScript
-// This assumes you're using something like zod for schema validation
+

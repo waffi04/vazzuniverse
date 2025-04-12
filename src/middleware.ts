@@ -12,7 +12,6 @@ export const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/forgot-passw
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const pathname = request.nextUrl.pathname
-  console.log(token)
   
   // Check if the route is in AUTH_ROUTES (login/register pages)
   if (AUTH_ROUTES.some(route => pathname.startsWith(route))) {

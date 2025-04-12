@@ -270,7 +270,7 @@ export async function POST(req: NextRequest) {
             link: invoiceLink,
             productName: layanan?.layanan as string,
             status: 'PAID',
-            customerName : pembelian?.nickname ?? 'Guest',
+            customerName : pembelian?.nickname as string,
             method: pembayaran?.metode,
             orderId: merchantOrderId,
             whatsapp: pembayaran?.noPembeli.toString()
@@ -301,19 +301,6 @@ export async function POST(req: NextRequest) {
                   sn: datas.sn,
                   refId: datas.ref_id,
                   updatedAt: new Date()
-                }
-              });
-
-              await handleOrderStatusChange({
-                orderData: {
-                  amount: pembelian?.harga as number,
-                  link: invoiceLink,
-                  productName: layanan?.layanan as string,
-                  status: newStatus,
-                  customerName : pembelian?.nickname ?? 'Guest',
-                  method: pembayaran?.metode,
-                  orderId: merchantOrderId,
-                  whatsapp: pembayaran?.noPembeli.toString()
                 }
               });
             } else {

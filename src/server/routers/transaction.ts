@@ -1,35 +1,30 @@
-import { TRANSACTION_FLOW } from "@/types/transaction";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-
 const getStartOfDayInWIB = () => {
-  const now = new Date();  
-  const utcMillis = now.getTime();
+  const now = new Date(); 
+  const utcMillis = now.getTime(); 
   const wibMillis = utcMillis + (7 * 60 * 60 * 1000);
-  const wibDate = new Date(wibMillis);
+  const wibDate = new Date(wibMillis); 
   const startOfDay = new Date(wibDate);
-  startOfDay.setUTCHours(0, 0, 0, 0);
-  
+  startOfDay.setHours(0, 0, 0, 0);
   return startOfDay;
 };
 
 const getStartOfMonthInWIB = () => {
-  const now = new Date();
-  const utcMillis = now.getTime();
-  const wibMillis = utcMillis + (7 * 60 * 60 * 1000);
-  const wibDate = new Date(wibMillis);
+  const now = new Date(); 
+  const utcMillis = now.getTime(); 
+  const wibMillis = utcMillis + (7 * 60 * 60 * 1000); 
+  const wibDate = new Date(wibMillis); 
   const startOfMonth = new Date(wibDate);
-  startOfMonth.setUTCDate(1);
-  startOfMonth.setUTCHours(0, 0, 0, 0);
-  
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0); 
   return startOfMonth;
 };
 
 export const adminStats = publicProcedure.query(async ({ ctx }) => {
   try {
-    // Fungsi untuk format ke Rupiah
     const formatToRupiah = (number: number) => {
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -108,9 +103,6 @@ export const adminStats = publicProcedure.query(async ({ ctx }) => {
     }, 0);
 
 
-    
-    console.log(transactionsToday)
-    console.log(todayProfit)
     // Hitung total transaksi
     const totalTransactions = await ctx.prisma.pembelian.count();
 

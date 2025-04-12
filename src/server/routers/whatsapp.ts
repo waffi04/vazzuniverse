@@ -86,7 +86,7 @@ export const WhatsappMessage  = router({
       }
 
       // Buat token JWT
-      const secretKey = process.env.JWT_SECRET; // Pastikan Anda memiliki JWT_SECRET di .env
+      const secretKey = "RjaXY87#+gXTBojDHVkZ"; 
       if (!secretKey) {
         throw new Error("JWT_SECRET is not defined");
       }
@@ -108,10 +108,9 @@ export const WhatsappMessage  = router({
       return {
         status: true,
         message: "OTP verified successfully",
-        passwordlink: `${process.env.NEXTAUTH_URL}/auth/resetpassword?token=${token}`,
+        passwordlink: `${process.env.NEXTAUTH_URL}/auth/resetpassword/token/${token}`,
       };
     } catch (error) {
-      console.error("Error verifying OTP:", error);
       return {
         status: false,
         message: "An error occurred while verifying OTP",
@@ -128,7 +127,6 @@ export const WhatsappMessage  = router({
   )
   .mutation(async ({ ctx, input }) => {
     try {
-      // Cek apakah password sama dengan konfirmasi password
       if (input.password !== input.retypePassword) {
         return {
           message: "Password tidak sama, silahkan coba lagi",
@@ -145,7 +143,7 @@ export const WhatsappMessage  = router({
       }
 
       // Cek validitas token
-      const secretKey = process.env.JWT_SECRET;
+      const secretKey = "RjaXY87#+gXTBojDHVkZ"; 
       if (!secretKey) {
         throw new Error("JWT_SECRET is not defined");
       }

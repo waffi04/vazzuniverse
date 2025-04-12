@@ -92,7 +92,6 @@ class PaymentRequestQueue {
           if (this.activeRequests.size < this.maxConcurrentRequests) {
             resolve();
           } else {
-            // Cek ulang setelah 100ms
             setTimeout(checkSlot, 100);
           }
         };
@@ -150,7 +149,6 @@ async function processVoucher(
     throw new Error(`Minimum purchase of ${voucher.minPurchase} required for this voucher`);
   }
 
-  // Verify voucher applicability to this category
   const isApplicable =
     voucher.isForAllCategories ||
     voucher.categories.some(vc => vc.categoryId === categoryDetails.id);
@@ -432,23 +430,12 @@ export async function POST(req: NextRequest) {
             where: { orderId: merchantOrderId },
             data: { 
               status: 'PAID',
-              updatedAt: new Date()
+              updatedAt: new Date(),
             }
           });
         
 
-          await handleOrderStatusChange({
-            orderData: {
-              amount: paymentAmount,
-              link: invoiceLink,
-              productName: layanan,
-              status: 'PAID',
-              customerName,
-              method: 'SALDO',
-              orderId: merchantOrderId,
-              whatsapp: noWa.toString()
-            }
-          });
+          
           // Process with Digiflazz
           const digiResponse = await digiflazz.TopUp({
             productCode: layanans?.providerId as string,
@@ -469,19 +456,20 @@ export async function POST(req: NextRequest) {
                 updatedAt: new Date()
               }
             });
-            await handleOrderStatusChange({
-              orderData: {
-                amount: paymentAmount,
-                link: invoiceLink,
-                productName: layanan,
-                status: 'PROCESS',
-                customerName,
-                method: 'SALDO',
-                orderId: merchantOrderId,
-                whatsapp: noWa.toString()
-              }
-            });
+          
           }
+          await handleOrderStatusChange({
+            orderData: {
+              amount: paymentAmount,
+              link: invoiceLink,
+              productName: layanan,
+              status: 'PAID',
+              customerName,
+              method: 'SALDO',
+              orderId: merchantOrderId,
+              whatsapp: noWa.toString()
+            }
+          });
 
           return NextResponse.json({
             reference: paymentReference,
@@ -530,7 +518,6 @@ export async function POST(req: NextRequest) {
           );
 
           const data = response.data;
-          console.log(data,"response duitku")
 
           // Validate response
           if (!data.statusCode) {
@@ -567,9 +554,7 @@ export async function POST(req: NextRequest) {
             where: { orderId: merchantOrderId },
             data: updateData
           });
-          // herayagNzPKgherayagNzPKgherayagNzPKg
-
-          // Send WhatsApp notifications for pending payment
+        
           await handleOrderStatusChange({
             orderData: {
               amount: paymentAmount,
@@ -594,9 +579,6 @@ export async function POST(req: NextRequest) {
             transactionId: transaction.id,
           });
         } catch (apiError: any) {
-          console.log(apiError)
-          console.error('Payment gateway error:', apiError.message);
-          
           // Update status to FAILED
           await tx.pembayaran.update({
             where: { orderId: merchantOrderId },
@@ -630,7 +612,6 @@ export async function POST(req: NextRequest) {
       }
     )})
   } catch (error: any) {
-    console.error('Transaction processing error:', error);
     return NextResponse.json(
       {
         success: false,
