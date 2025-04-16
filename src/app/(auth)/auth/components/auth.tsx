@@ -21,9 +21,7 @@ export function AuthPage({ children }: { children: ReactNode }) {
     >
       <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-0" />
 
-      {/* Content container */}
       <div className="w-full max-w-md z-10 relative">
-        {/* Logo or branding at the top */}
         <div className="flex justify-center ">
             <Image src={URL_LOGO as string} alt="Logo" width={200} height={100} className="h-full w-auto" />
         </div>
@@ -32,7 +30,6 @@ export function AuthPage({ children }: { children: ReactNode }) {
           <div className="p-8">{children}</div>       
         </div>
 
-        {/* Footer text */}
         <div className="text-center mt-6 text-white text-md">
           <p>© {new Date().getFullYear()} VazzUniverse. All rights reserved.</p>
         </div>

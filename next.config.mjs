@@ -9,6 +9,10 @@ const nextConfig = {
         ignoreBuildErrors: true,
     },
     images: {
+    domains : [
+        'vazzuniverse.id'
+    ],    minimumCacheTTL: 60,
+
         remotePatterns: [
             {
                 hostname: 'res.cloudinary.com',

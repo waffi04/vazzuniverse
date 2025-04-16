@@ -19,7 +19,6 @@ import { TransactionStatusChart } from "./transaction-status-chart";
 import { RevenueChart } from "./revenue-chart";
 import { trpc } from "@/utils/trpc";
 import { RecentTransactions } from "./recent-transactions";
-
 export type FILTER = "ALL" | "PAYMENT" | "DEPOSIT" | "Top Up";
 
 export default function DashboardAdminPage() {
