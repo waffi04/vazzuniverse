@@ -9,7 +9,6 @@ export async function GET() {
     // Get credentials
     const username = process.env.DIGI_USERNAME;
     const apiKey = process.env.DIGI_API_KEY;
-    const settingweb =  await prisma.websiteConfig.findFirst()
 
     if (!username || !apiKey ) {
       console.error('Missing Digiflazz credentials');
@@ -19,24 +18,19 @@ export async function GET() {
       );
     }
 
-    console.log('Credentials loaded, initializing Digiflazz client...');
     const digiflazz = new Digiflazz(username, apiKey);
 
     // Get price list from Digiflazz with better error handling
-    console.log('Fetching price list from Digiflazz...');
     let rawResponse;
     try {
       rawResponse = await digiflazz.checkPrice();
     } catch (e ) {
-      console.error('Error fetching from Digiflazz API:', e);
       return NextResponse.json(
         { error: 'Failed to fetch price list: ' + (e instanceof Error ?  e.message : e) },
         { status: 500 }
       );
     }
 
-    console.log('Digiflazz API response received');
-    console.log('Response type:', typeof rawResponse);
 
     // Extract the data array
     let dataArray;
@@ -64,10 +58,7 @@ export async function GET() {
         dataArray = rawResponse.response.data;
       } else {
         // Log what we actually received
-        console.error(
-          'Unexpected response structure:',
-          JSON.stringify(rawResponse).substring(0, 1000)
-        );
+        
         return NextResponse.json(
           { error: 'Invalid response format - data array not found' },
           { status: 500 }
@@ -81,9 +72,7 @@ export async function GET() {
       );
     }
 
-    console.log(
-      `Successfully extracted data array with ${dataArray.length} items`
-    );
+   
 
     // Sample a few items to verify structure
     if (dataArray.length > 0) {
@@ -93,7 +82,6 @@ export async function GET() {
     // Get all categories from database
     console.log('Fetching categories from database...');
     const categories = await prisma.categories.findMany();
-    console.log(`Found ${categories.length} categories in database`);
 
     if (categories.length === 0) {
       console.warn('No categories found in database, nothing to process');
@@ -142,7 +130,7 @@ export async function GET() {
           let defaultProfits = {
             profit: 4,
             profitReseller: 3,
-            profitPlatinum: 1,
+            profitPlatinum: 3,
             profitGold: 2,
           };
 
@@ -163,9 +151,7 @@ export async function GET() {
 
             if (!existingService) {
               // Create new service
-              console.log(
-                `Creating new service: ${item.product_name} (${item.buyer_sku_code})`
-              );
+              
 
               try {
                 // Calculate base price with profit margins
@@ -215,10 +201,7 @@ export async function GET() {
                 );
               }
             } else {
-              // Update existing service
-              console.log(
-                `Updating existing service: ${item.product_name} (${item.buyer_sku_code})`
-              );
+            
 
               try {
                 // Calculate regular prices with profit margins
@@ -262,13 +245,9 @@ export async function GET() {
       }
 
       categoryMatches[category.brand] = matchCount;
-      console.log(`Found ${matchCount} matches for category ${category.brand}`);
     }
 
-    console.log(
-      'Processing complete. Category match summary:',
-      categoryMatches
-    );
+   
     console.log('Final statistics:', stats);
 
     return NextResponse.json({

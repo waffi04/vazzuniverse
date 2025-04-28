@@ -5,9 +5,7 @@ import { TRPCError } from "@trpc/server";
 const getStartOfDayInWIB = () => {
   const now = new Date(); 
   const utcMillis = now.getTime(); 
-  const wibMillis = utcMillis + (7 * 60 * 60 * 1000);
-  const wibDate = new Date(wibMillis); 
-  const startOfDay = new Date(wibDate);
+  const startOfDay = new Date(utcMillis);
   startOfDay.setHours(0, 0, 0, 0);
   return startOfDay;
 };
@@ -15,9 +13,7 @@ const getStartOfDayInWIB = () => {
 const getStartOfMonthInWIB = () => {
   const now = new Date(); 
   const utcMillis = now.getTime(); 
-  const wibMillis = utcMillis + (7 * 60 * 60 * 1000); 
-  const wibDate = new Date(wibMillis); 
-  const startOfMonth = new Date(wibDate);
+  const startOfMonth = new Date(utcMillis);
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0); 
   return startOfMonth;

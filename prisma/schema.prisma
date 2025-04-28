@@ -71,7 +71,6 @@ model Categories {
   updatedAt     DateTime? @updatedAt @map("updated_at")
   bannerLayanan String    @map("bannerlayanan")
   
-  // Add relationships
   vouchers      VoucherCategory[]
   subCategories SubCategory[]
   layanan       Layanan[]
@@ -96,10 +95,10 @@ model Layanan {
   profitPlatinum     Int       @map("profit_platinum")
   profitGold         Int       @map("profit_gold")
   isFlashSale        Boolean   @db.TinyInt @map("is_flash_sale")
-  judulFlashSale     String?   @db.VarChar(255) @map("judul_flash_sale") // Limit text length
-  bannerFlashSale    String?   @db.VarChar(255) @map("banner_flash_sale") // Limit text length
+  judulFlashSale     String?   @db.VarChar(255) @map("judul_flash_sale") 
+  bannerFlashSale    String?   @db.VarChar(255) @map("banner_flash_sale") 
   expiredFlashSale   DateTime? @db.Date @map("expired_flash_sale")
-  catatan            String    @db.Text @map("catatan") // Changed from LongText for better compatibility
+  catatan            String    @db.Text @map("catatan") 
   status             Boolean   @map("status")
   provider           String    @map("provider")
   productLogo        String?   @map("product_logo")
@@ -109,11 +108,10 @@ model Layanan {
   kategori           Categories @relation(fields: [kategoriId], references: [id])
   subCategory        SubCategory? @relation(fields: [subCategoryId], references: [id])
   
-  // Optimize indexes for common queries
-  @@index([kategoriId, status]) // For active services by category
-  @@index([subCategoryId, status]) // For active services by subcategory
-  @@index([providerId, status]) // For provider lookups
-  @@index([isFlashSale, expiredFlashSale]) // For flash sale filtering
+  @@index([kategoriId, status]) 
+  @@index([subCategoryId, status]) 
+  @@index([providerId, status])
+  @@index([isFlashSale, expiredFlashSale]) 
   @@index([status, isFlashSale])
   @@map("layanans")
 }
@@ -202,10 +200,9 @@ model Pembelian {
   user                  Users?     @relation(fields: [username], references: [username])
   systemLogs            SystemLog[]
 
-  // Optimize indexes for common queries and reporting
-  @@index([orderId, status]) // For status lookups
-  @@index([username, createdAt]) // For user history
-  @@index([status, createdAt]) // For status reports by date
+  @@index([orderId, status])
+  @@index([username, createdAt]) 
+  @@index([status, createdAt]) 
   @@index([orderId, username, status])
   @@map("pembelians")
 }
@@ -291,12 +288,9 @@ model SubCategory {
   createdAt    DateTime? @default(now()) @map("created_at")
   updatedAt    DateTime? @updatedAt @map("updated_at")
   
-  // Add relationship to Categories
   category     Categories @relation(fields: [categoryId], references: [id])
-  // Add relationship to Layanan
   layanan      Layanan[]
 
-  // You already have a combined index that includes categoryId
   @@index([code, categoryId, active])
   @@index([categoryId])
   @@map("sub_categories")
@@ -307,10 +301,10 @@ model Users {
   name           String    @map("name")
   username       String    @unique @map("username")
   password       String    @map("password")
-  whatsapp       String?   @db.VarChar(20) @map("whatsapp") // Limit length for phone numbers
+  whatsapp       String?   @db.VarChar(20) @map("whatsapp") 
   balance        Int       @map("balance")
-  role           String    @db.VarChar(20) @map("role") // Limit enum values
-  otp            String?   @db.VarChar(6) @map("otp") // OTP codes are typically 6 digits
+  role           String    @db.VarChar(20) @map("role") 
+  otp            String?   @db.VarChar(6) @map("otp") 
   apiKey         String?   @map("api_key")
   createdAt      DateTime? @default(now()) @map("created_at")
   updatedAt      DateTime? @updatedAt @map("updated_at")
@@ -320,10 +314,9 @@ model Users {
   deposits       Deposits[]
   pembelian      Pembelian[]
 
-  // Optimize indexes for common queries
-  @@index([username, balance]) // For balance lookups by username
-  @@index([role, balance]) // For role-based aggregations
-  @@index([whatsapp, otp]) // For OTP verification
+  @@index([username, balance])
+  @@index([role, balance])
+  @@index([whatsapp, otp])
   @@index([username, role, whatsapp])
   @@map("users")
 }
